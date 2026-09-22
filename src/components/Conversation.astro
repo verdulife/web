@@ -13,13 +13,7 @@ const suggestions = [
 ---
 
 <div data-worker-url={workerUrl} id="conversacion" class="chat flex min-h-0 flex-1 flex-col">
-  <div
-    class="ask-thread py-6"
-    role="log"
-    aria-live="polite"
-    aria-label="Hilo de la conversación"
-    tabindex="-1"
-  >
+  <div class="ask-thread p-6" role="log" aria-live="polite" aria-label="Hilo de la conversación" tabindex="-1">
     <div class="ask-assistant">
       <p class="ask-paragraph ask-paragraph--first">
         Hola, soy Albert Verdú, desarrollador web y diseñador gráfico con más de 20 años de
@@ -36,6 +30,8 @@ const suggestions = [
         ))
       }
     </div>
+
+    <div class="ask-thinking" role="status" hidden></div>
   </div>
 
   <footer class="ask-composer">
@@ -45,8 +41,6 @@ const suggestions = [
       <button type="submit" class="ask-button" aria-label="Enviar pregunta">→</button>
     </form>
   </footer>
-
-  <div class="ask-thinking" role="status" hidden></div>
 
   <div class="ask-error" role="status" hidden></div>
 </div>

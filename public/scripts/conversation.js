@@ -299,10 +299,19 @@
     function setThinking(value) {
       // Dots only: the row carries no text now. They sit directly inside
       // .ask-thinking so their nth-child stagger applies.
-      if (value && thinking.querySelectorAll(".thinking-dot").length === 0) {
-        thinking.append(createDot(), createDot(), createDot());
+      if (value) {
+        if (thinking.querySelectorAll(".thinking-dot").length === 0) {
+          thinking.append(createDot(), createDot(), createDot());
+        }
+        // The indicator lives at the END of the thread (below the last
+        // message), so it is (re)moved there and the thread stays pinned
+        // to the bottom while it shows.
+        thread.append(thinking);
+        thinking.hidden = false;
+        scrollThreadBottom(thread);
+      } else {
+        thinking.hidden = true;
       }
-      thinking.hidden = !value;
     }
 
     function appendUserTurn(question) {
@@ -358,6 +367,10 @@
 
       try {
         var response = await postChat(history, controller.signal);
+        // Streaming starts now: drop the thinking indicator before the
+        // first character of the reply is typed. The typewriter keeps the
+        // thread pinned to the bottom on its own from here on.
+        setThinking(false);
         history.push({ role: "assistant", content: response.reply });
         await buildAssistantTurn(response.reply);
       } catch (error) {
@@ -365,6 +378,8 @@
         showError(failure.code, failure.message);
       } finally {
         window.clearTimeout(timeout);
+        // Eager hide already ran on success; on failure this is the path
+        // that hides the indicator before showing the error (as before).
         setThinking(false);
         setBusy(false);
         input.focus();
