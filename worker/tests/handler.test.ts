@@ -54,6 +54,7 @@ function makeDeps(overrides: Partial<HandlerDeps> = {}): HandlerDeps {
     knowledge: new SnapshotKnowledgeProvider(6000),
     ai: new FakeAIProvider({ text: "Respuesta", toolCalls: null }),
     limits: limitsFromEnv({}),
+    allowedOrigins: ["http://localhost:4321"],
     ...overrides,
   };
 }
@@ -122,18 +123,69 @@ describe("buildHandler routing", () => {
     const body = await jsonBody(response);
     expect(body.error).toEqual({ code: "not_found", message: "Recurso no encontrado.", retryable: false });
   });
+
+  it("carries the CORS headers on non-chat responses for an allowed origin", async () => {
+    const handler = buildHandler(makeDeps());
+    const headers = { origin: "http://localhost:4321" };
+
+    const health = await handler(request("/health", { headers }), makeEnv());
+    const notFound = await handler(request("/no-existe", { headers }), makeEnv());
+
+    for (const response of [health, notFound]) {
+      expect(response.headers.get("access-control-allow-origin")).toBe("http://localhost:4321");
+      expect(response.headers.get("vary")).toBe("Origin");
+    }
+  });
+
+  it("learns the allowlist from deps, not from env", async () => {
+    const handler = buildHandler(makeDeps({ allowedOrigins: ["https://allowed.example"] }));
+    const response = await handler(
+      request("/health", { headers: { origin: "https://allowed.example" } }),
+      makeEnv(),
+    );
+
+    expect(response.headers.get("access-control-allow-origin")).toBe("https://allowed.example");
+  });
 });
 
 describe("buildHandler POST /api/chat", () => {
   it("returns the reply and sources on the happy path", async () => {
     const handler = buildHandler(makeDeps());
     const response = await handler(
-      chatRequest({ messages: [{ role: "user", content: "¿Quién eres?" }] }),
+      chatRequest({ messages: [{ role: "user", content: "¿Quién eres?" }] }, { origin: "http://localhost:4321" }),
       makeEnv(),
     );
 
     expect(response.status).toBe(200);
     expect(await jsonBody(response)).toEqual({ reply: "Respuesta", sources: [] });
+    expect(response.headers.get("access-control-allow-origin")).toBe("http://localhost:4321");
+    expect(response.headers.get("vary")).toBe("Origin");
+    expect(response.headers.get("access-control-allow-methods")).toBe("POST, OPTIONS");
+    expect(response.headers.get("access-control-allow-headers")).toBe("content-type");
+  });
+
+  it("omits ACAO on the happy path for a disallowed origin", async () => {
+    const handler = buildHandler(makeDeps());
+    const response = await handler(
+      chatRequest({ messages: [{ role: "user", content: "¿Quién eres?" }] }, { origin: "https://evil.example" }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await jsonBody(response)).toEqual({ reply: "Respuesta", sources: [] });
+    expect(response.headers.get("access-control-allow-origin")).toBeNull();
+    expect(response.headers.get("vary")).toBeNull();
+  });
+
+  it("carries the CORS headers on chat error responses for an allowed origin", async () => {
+    const handler = buildHandler(makeDeps({ rateLimiter: fakeRateLimiter(false) }));
+    const response = await handler(
+      chatRequest({ messages: [{ role: "user", content: "¿Quién eres?" }] }, { origin: "http://localhost:4321" }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("access-control-allow-origin")).toBe("http://localhost:4321");
   });
 
   it("returning conversations works (multiple messages, no scope abuse)", async () => {
