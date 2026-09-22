@@ -1,6 +1,6 @@
 /**
- * conversation.js — editorial conversation client for the portfolio
- * (portfolio-ai, task 6).
+ * conversation.js — mobile chat client for the portfolio (portfolio-ai,
+ * mobile-first aesthetic pass).
  *
  * This is a SELF-CONTAINED plain ES module served as a static asset from
  * /scripts/conversation.js. It deliberately has NO imports: the site's Astro
@@ -10,11 +10,12 @@
  * Hook contract (single root element, no external dependencies):
  *   root = document.getElementById("conversacion")
  *   query classes under root:
+ *     .ask-status        status label, filled after the /health ping
  *     .ask-form          the <form>; submit triggers a question
  *     .ask-input         text input (Enter submits natively)
  *     .ask-button        submit button ("Publicar")
  *     .ask-suggestions   container of .ask-suggestion buttons (data-question)
- *     .ask-thread        role="log" region where turns are appended
+ *     .ask-thread        role="log" region where turns are appended/scrolled
  *     .ask-thinking      hidden thinking row shown while a request is in flight
  *     .ask-error         hidden error row; its content is built here
  *
@@ -33,19 +34,22 @@
   var WORKER_URL_FALLBACK = "http://localhost:8787";
   var MAX_CONTEXT_MESSAGES = 8;
   var REQUEST_TIMEOUT_MS = 25_000;
+  var HEALTH_TIMEOUT_MS = 3_000;
+
+  var INTRO_TEXT =
+    "Hola, soy Albert Verdú, desarrollador web y diseñador gráfico con más de 20 años de experiencia. ¿En qué puedo ayudarte?";
 
   var RATE_LIMIT_MESSAGE =
     "Demasiadas preguntas en poco tiempo. Espera un momento y vuelve a intentarlo.";
   var UNAVAILABLE_MESSAGE = "El servicio de respuestas no está disponible ahora mismo.";
 
-  var HEALTH_TIMEOUT_MS = 3_000;
   var STATUS_ONLINE_TEXT = "Asistente en línea";
   var STATUS_OFFLINE_TEXT = "Asistente sin conexión";
 
   /**
-   * Live service status label (task 7). Runs once at module init, right after
-   * the constants exist and before anything else, and never blocks the page:
-   * a non-200 response, a network error or the 3s abort all mean "offline".
+   * Live service status label. Runs once at module init and never blocks the
+   * page: a non-200 response, a network error or the 3s abort all mean
+   * "offline".
    */
   function pingWorkerStatus() {
     var statusElement = document.querySelector("#" + HOOK_ROOT_ID + " .ask-status");
@@ -154,11 +158,9 @@
     }
 
     var sources = Array.isArray(payload.sources)
-      ? payload.sources.filter(
-          function (source) {
-            return typeof source === "string" && source !== "";
-          },
-        )
+      ? payload.sources.filter(function (source) {
+          return typeof source === "string" && source !== "";
+        })
       : [];
     return { reply: payload.reply, sources: sources };
   }
@@ -186,6 +188,55 @@
     return dot;
   }
 
+  function prefersReducedMotion() {
+    return (
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+  }
+
+  /**
+   * Scrolls the thread to its bottom. Smoothness is governed by the CSS
+   * scroll-behavior on .ask-thread (auto under prefers-reduced-motion), so a
+   * plain scrollTop jump is smooth when allowed and instant otherwise.
+   */
+  function scrollThreadBottom(thread) {
+    thread.scrollTop = thread.scrollHeight;
+  }
+
+  /**
+   * Types `text` char-by-char into `element` (textContent only), keeping the
+   * thread scrolled to the bottom while typing. Fast step (8ms/char) for long
+   * replies (>400 chars), slow (16ms/char) otherwise. With
+   * prefers-reduced-motion the full text lands instantly.
+   */
+  function streamText(element, text, thread, done) {
+    var reduced = prefersReducedMotion();
+
+    if (reduced) {
+      element.textContent = text;
+      scrollThreadBottom(thread);
+      done();
+      return;
+    }
+
+    var stepMs = text.length > 400 ? 8 : 16;
+    var index = 0;
+
+    function tick() {
+      index += 1;
+      element.textContent = text.slice(0, index);
+      scrollThreadBottom(thread);
+      if (index < text.length) {
+        window.setTimeout(tick, stepMs);
+      } else {
+        done();
+      }
+    }
+
+    tick();
+  }
+
   function init() {
     var root = document.getElementById(HOOK_ROOT_ID);
     if (!root) return;
@@ -211,17 +262,46 @@
     }
 
     var history = [];
-    var questionCount = 0;
-    var thinkingBusy = false;
+    var busy = false;
 
-    function setThinking(value) {
-      thinkingBusy = value;
+    /**
+     * Appends an assistant turn and streams its reply into a single
+     * .ask-paragraph (textContent only); sources appear after typing ends.
+     */
+    function buildAssistantTurn(text, sources) {
+      return new Promise(function (resolve) {
+        var turn = document.createElement("div");
+        turn.className = "ask-assistant";
+
+        var paragraph = document.createElement("p");
+        paragraph.className = "ask-paragraph";
+        turn.append(paragraph);
+
+        thread.append(turn);
+        scrollThreadBottom(thread);
+
+        streamText(paragraph, text, thread, function () {
+          if (sources.length > 0) {
+            var fuentes = document.createElement("p");
+            fuentes.className = "ask-fuentes";
+            fuentes.textContent = "Fuentes: " + sources.join(" · ");
+            turn.append(fuentes);
+          }
+          scrollThreadBottom(thread);
+          resolve();
+        });
+      });
+    }
+
+    function setBusy(value) {
+      busy = value;
       input.disabled = value;
       submitButton.disabled = value;
-
       var buttons = suggestionsWrap.querySelectorAll(".ask-suggestion");
       for (var i = 0; i < buttons.length; i += 1) buttons[i].disabled = value;
+    }
 
+    function setThinking(value) {
       if (value && !thinking.querySelector(".ask-thinking-dots")) {
         var dots = document.createElement("span");
         dots.className = "ask-thinking-dots";
@@ -229,65 +309,27 @@
         dots.append(createDot(), createDot(), createDot());
         thinking.append(dots);
       }
-
       thinking.hidden = !value;
     }
 
     function appendUserTurn(question) {
-      questionCount += 1;
-
       var turn = document.createElement("div");
       turn.className = "ask-user";
 
-      var meta = document.createElement("p");
-      meta.className = "mono-meta";
-      meta.textContent = "PREGUNTA " + String(questionCount).padStart(2, "0");
-
       var ask = document.createElement("p");
-      ask.className = "ask-question";
+      ask.className = "ask-ask";
+      ask.textContent = question;
 
-      var dash = document.createElement("span");
-      dash.className = "ask-dash";
-      dash.setAttribute("aria-hidden", "true");
-      dash.textContent = "— ";
-
-      ask.append(dash, document.createTextNode(question));
-      turn.append(meta, ask);
+      turn.append(ask);
       thread.append(turn);
-    }
-
-    function appendAssistantTurn(reply, sources) {
-      var turn = document.createElement("div");
-      turn.className = "ask-assistant";
-
-      var blocks = reply.split("\n\n");
-      for (var i = 0; i < blocks.length; i += 1) {
-        var paragraph = blocks[i].trim();
-        if (paragraph === "") continue;
-
-        var element = document.createElement("p");
-        element.className = "ask-paragraph";
-        // Untrusted model text: text nodes only, never innerHTML.
-        element.textContent = paragraph;
-        turn.append(element);
-      }
-
-      if (sources.length > 0) {
-        var fuentes = document.createElement("p");
-        fuentes.className = "mono-meta ask-fuentes";
-        fuentes.textContent = "// fuentes: " + sources.join(", ");
-        turn.append(fuentes);
-      }
-
-      thread.append(turn);
+      scrollThreadBottom(thread);
     }
 
     function showError(code, providerMessage) {
       errorBox.replaceChildren();
 
-      var kicker = document.createElement("p");
-      kicker.className = "kicker";
-      kicker.textContent = "SERVICIO NO DISPONIBLE";
+      var title = document.createElement("strong");
+      title.textContent = "Servicio no disponible";
 
       var message = document.createElement("p");
       message.className = "ask-error-message";
@@ -299,20 +341,21 @@
       retry.textContent = "Reintentar";
       retry.addEventListener("click", function () {
         var last = history[history.length - 1];
-        if (!last || last.role !== "user" || thinkingBusy) return;
+        if (!last || last.role !== "user" || busy) return;
         // Resends the last question: it is still the tail of the thread.
         void runRequest();
       });
 
-      errorBox.append(kicker, message, retry);
+      errorBox.append(title, message, retry);
       errorBox.hidden = false;
       retry.focus();
     }
 
     async function runRequest() {
-      if (thinkingBusy) return;
+      if (busy) return;
 
       errorBox.hidden = true;
+      setBusy(true);
       setThinking(true);
 
       var controller = new AbortController();
@@ -323,25 +366,52 @@
       try {
         var response = await postChat(history, controller.signal);
         history.push({ role: "assistant", content: response.reply });
-        appendAssistantTurn(response.reply, response.sources);
-        thread.focus();
+        await buildAssistantTurn(response.reply, response.sources);
       } catch (error) {
         var failure = readFailure(error);
         showError(failure.code, failure.message);
       } finally {
         window.clearTimeout(timeout);
         setThinking(false);
+        setBusy(false);
+        input.focus();
       }
     }
 
     async function ask(question) {
       var trimmed = question.trim();
-      if (trimmed === "" || thinkingBusy) return;
+      if (trimmed === "" || busy) return;
 
       history.push({ role: "user", content: trimmed });
       appendUserTurn(trimmed);
       input.value = "";
       await runRequest();
+    }
+
+    /**
+     * Greeting as the first thread message. The server-rendered intro (kept
+     * for no-JS/SEO resilience) is removed first, then the same text streams
+     * with the typewriter effect. The composer stays locked while it types.
+     */
+    function streamIntro() {
+      var introElement = thread.querySelector(".ask-assistant");
+      if (introElement) introElement.remove();
+
+      var turn = document.createElement("div");
+      turn.className = "ask-assistant";
+
+      var paragraph = document.createElement("p");
+      paragraph.className = "ask-paragraph";
+      turn.append(paragraph);
+
+      thread.append(turn);
+
+      setBusy(true);
+      streamText(paragraph, INTRO_TEXT, thread, function () {
+        scrollThreadBottom(thread);
+        setBusy(false);
+        input.focus();
+      });
     }
 
     form.addEventListener("submit", function (event) {
@@ -361,7 +431,7 @@
       if (!(target instanceof Element)) return;
 
       var button = target.closest(".ask-suggestion");
-      if (!button || thinkingBusy) return;
+      if (!button || busy) return;
 
       var question = button.dataset.question ?? "";
       if (question === "") return;
@@ -369,6 +439,8 @@
       input.value = question;
       void ask(question);
     });
+
+    streamIntro();
   }
 
   init();

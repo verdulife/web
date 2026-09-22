@@ -2,14 +2,14 @@
 id: experience
 kind: experience
 title: "Experiencia"
-description: "Más de 15 años entre el diseño gráfico y el frontend, con clientes y colaboraciones destacadas y productos propios."
+description: "Más de 20 años entre el diseño gráfico y el frontend, con clientes y colaboraciones destacadas y productos propios."
 ---
 
 # Experiencia
 
 ## Diseño gráfico y frontend
 
-Más de 15 años de experiencia como diseñador gráfico y desarrollador frontend, con base en Barcelona y actividad en Sitges. El design first guía el desarrollo de UI/UX.
+Más de 20 años de experiencia como diseñador gráfico y desarrollador frontend, con base en Barcelona y actividad en Sitges. El design first guía el desarrollo de UI/UX.
 
 ## Clientes y colaboraciones destacadas
 

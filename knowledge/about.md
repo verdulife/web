@@ -2,12 +2,12 @@
 id: about
 kind: about
 title: "Sobre mí"
-description: "Diseñador gráfico y desarrollador frontend de Barcelona con más de 15 años de experiencia."
+description: "Diseñador gráfico y desarrollador frontend de Barcelona con más de 20 años de experiencia."
 ---
 
 # Sobre mí
 
-Me llamo Albert Verdu. Soy diseñador gráfico y desarrollador frontend de Barcelona, con más de 15 años de experiencia entre el diseño y el código. Para mí, el design first es el núcleo de todo el desarrollo de UI/UX: la intención visual, la jerarquía y la forma guían la implementación, nunca al revés.
+Me llamo Albert Verdu. Soy diseñador gráfico y desarrollador frontend de Barcelona, con más de 20 años de experiencia entre el diseño y el código. Para mí, el design first es el núcleo de todo el desarrollo de UI/UX: la intención visual, la jerarquía y la forma guían la implementación, nunca al revés.
 
 Vivo y trabajo desde Olivella, con actividad en Sitges (Barcelona).
 

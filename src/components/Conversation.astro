@@ -12,55 +12,48 @@ const suggestions = [
 ];
 ---
 
-<div data-worker-url={workerUrl}>
-  <p class="kicker">PREGUNTA</p>
-
-  <h2
-    id="conversation-heading"
-    class="mt-6 max-w-3xl font-serif text-4xl font-medium leading-[1.08] tracking-tight sm:text-5xl"
-  >
-    Hola. ¿Qué quieres saber de mí?
-  </h2>
-
-  <p class="lede mt-6 max-w-2xl">
-    Pregúntame por mi trabajo, mis proyectos o mis servicios como si fuera el artículo que falta
-    en esta edición.
-  </p>
-
-  <p class="mt-8 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-    <span class="mono-meta uppercase tracking-[0.18em]">INTRO PARA PUBLICAR</span>
-    <span class="ask-status mono-meta"></span>
-  </p>
-
-  <form class="ask-form" aria-labelledby="conversation-heading">
-    <label for="ask-input" class="mono-meta block uppercase tracking-[0.18em]">Tu pregunta</label>
-
-    <div class="mt-2 flex items-end gap-4">
-      <input id="ask-input" class="ask-input w-full min-w-0" type="text" autocomplete="off" />
-      <button type="submit" class="ask-button">Publicar</button>
-    </div>
-  </form>
-
-  <div class="ask-suggestions">
-    {
-      suggestions.map((suggestion) => (
-        <button type="button" class="ask-suggestion" data-question={suggestion.question}>
-          {suggestion.label}
-        </button>
-      ))
-    }
-  </div>
-
+<div data-worker-url={workerUrl} id="conversacion" class="chat flex min-h-0 flex-1 flex-col">
   <div
-    class="ask-thread"
+    class="ask-thread flex-1 min-h-0 overflow-y-auto"
     role="log"
     aria-live="polite"
     aria-label="Hilo de la conversación"
     tabindex="-1"
-  ></div>
+  >
+    <div class="ask-assistant">
+      <p class="ask-paragraph">
+        Hola, soy Albert Verdú, desarrollador web y diseñador gráfico con más de 20 años de
+        experiencia. ¿En qué puedo ayudarte?
+      </p>
+    </div>
+  </div>
+
+  <div class="ask-composer">
+    <div class="flex items-baseline justify-between gap-4">
+      <span id="ask-status" class="ask-status"></span>
+      <span class="ask-hint">Intro para publicar</span>
+    </div>
+
+    <div class="ask-suggestions" role="group" aria-label="Sugerencias">
+      {
+        suggestions.map((suggestion) => (
+          <button type="button" class="ask-suggestion" data-question={suggestion.question}>
+            {suggestion.label}
+          </button>
+        ))
+      }
+    </div>
+
+    <form class="ask-form" aria-labelledby="conversation-heading">
+      <h2 id="conversation-heading" class="sr-only">Conversación</h2>
+      <label for="ask-input" class="sr-only">Tu pregunta</label>
+      <input id="ask-input" class="ask-input" type="text" autocomplete="off" />
+      <button type="submit" class="ask-button">Publicar</button>
+    </form>
+  </div>
 
   <div class="ask-thinking" role="status" hidden>
-    <span class="ask-thinking-text">Redactando artículo</span>
+    <span class="ask-thinking-text">Redactando artículo…</span>
   </div>
 
   <div class="ask-error" role="status" hidden></div>

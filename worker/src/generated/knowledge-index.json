@@ -4,7 +4,7 @@
     "path": "about",
     "kind": "about",
     "title": "Sobre mí",
-    "description": "Diseñador gráfico y desarrollador frontend de Barcelona con más de 15 años de experiencia."
+    "description": "Diseñador gráfico y desarrollador frontend de Barcelona con más de 20 años de experiencia."
   },
   {
     "id": "contact",
@@ -18,7 +18,7 @@
     "path": "experience",
     "kind": "experience",
     "title": "Experiencia",
-    "description": "Más de 15 años entre el diseño gráfico y el frontend, con clientes y colaboraciones destacadas y productos propios."
+    "description": "Más de 20 años entre el diseño gráfico y el frontend, con clientes y colaboraciones destacadas y productos propios."
   },
   {
     "id": "alter",

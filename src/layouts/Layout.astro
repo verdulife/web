@@ -18,13 +18,6 @@ const pageTitle = title.includes(SITE.name) ? title : `${title} — ${SITE.name}
 const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
 const ogImageUrl = ogImage ? new URL(ogImage, siteUrl).href : undefined;
 
-const today = new Intl.DateTimeFormat("es-ES", {
-  day: "2-digit",
-  month: "long",
-  year: "numeric",
-}).format(new Date());
-const todayIso = new Date().toISOString().slice(0, 10);
-
 const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
 ---
 
@@ -61,52 +54,90 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
       Saltar al contenido
     </a>
 
-    <header class="border-b border-line">
-      <div class="mx-auto w-full max-w-5xl px-6">
-        <div
-          class="flex items-baseline justify-between gap-4 pt-6 pb-2 font-mono text-[0.7rem] uppercase tracking-[0.18em] text-ink-muted"
+    <header class="sticky top-0 z-30 border-b border-line bg-paper">
+      <div class="flex items-center justify-between px-5 py-4">
+        <a href="/" class="no-underline">
+          <span class="font-serif text-3xl font-medium tracking-tight text-ink">V.</span>
+        </a>
+
+        <button
+          id="menu-button"
+          type="button"
+          class="cursor-pointer border-0 bg-transparent font-mono text-xs uppercase tracking-[0.18em] text-ink transition-colors hover:text-accent"
+          aria-expanded="false"
+          aria-controls="menu-panel"
         >
-          <span>Edición digital — Sitges · Barcelona</span>
-          <time datetime={todayIso}>{today}</time>
-        </div>
-
-        <div class="pb-4">
-          <a href="/" class="inline-block no-underline">
-            <span class="font-serif text-4xl font-medium tracking-tight text-ink sm:text-5xl">
-              {SITE.name}
-            </span>
-          </a>
-        </div>
-
-        <div class="editorial-rule--double" aria-hidden="true"></div>
-
-        <nav aria-label="Navegación principal" class="py-3">
-          <ul
-            class="flex flex-wrap gap-x-5 gap-y-2 font-mono text-[0.72rem] uppercase tracking-[0.18em]"
-          >
-            {
-              SITE.nav.map((item) => {
-                const itemPath = item.href.replace(/\/+$/, "") || "/";
-                const isCurrent = itemPath === currentPath;
-                return (
-                  <li>
-                    <a
-                      href={item.href}
-                      aria-current={isCurrent ? "page" : undefined}
-                      class:list={[
-                        "no-underline transition-colors hover:text-accent",
-                        isCurrent ? "text-accent" : "text-ink",
-                      ]}
-                    >
-                      {item.label}
-                    </a>
-                  </li>
-                );
-              })
-            }
-          </ul>
-        </nav>
+          MENU
+        </button>
       </div>
+
+      <nav
+        id="menu-panel"
+        aria-label="Navegación"
+        class="absolute top-full left-0 right-0 border-b border-line bg-paper"
+        hidden
+      >
+        <ul class="divide-y divide-line">
+          {
+            SITE.nav.map((item) => {
+              const itemPath = item.href.replace(/\/+$/, "") || "/";
+              const isCurrent = itemPath === currentPath;
+              return (
+                <li>
+                  <a
+                    href={item.href}
+                    aria-current={isCurrent ? "page" : undefined}
+                    class:list={[
+                      "block px-5 py-3 font-mono text-sm uppercase tracking-[0.18em] no-underline transition-colors hover:text-accent",
+                      isCurrent ? "text-accent" : "text-ink",
+                    ]}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              );
+            })
+          }
+        </ul>
+      </nav>
+
+      <script is:inline>
+        (function () {
+          var button = document.getElementById("menu-button");
+          var panel = document.getElementById("menu-panel");
+          if (!button || !panel) return;
+
+          function toggle(open) {
+            var willOpen = typeof open === "boolean" ? open : panel.hidden;
+            panel.hidden = !willOpen;
+            button.setAttribute("aria-expanded", String(willOpen));
+          }
+
+          button.addEventListener("click", function (event) {
+            event.stopPropagation();
+            toggle();
+          });
+
+          panel.addEventListener("click", function (event) {
+            if (event.target && event.target.closest && event.target.closest("a")) {
+              toggle(false);
+            }
+          });
+
+          document.addEventListener("click", function (event) {
+            if (panel.hidden) return;
+            if (event.target && event.target.closest && event.target.closest("header")) return;
+            toggle(false);
+          });
+
+          document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+              toggle(false);
+              button.focus();
+            }
+          });
+        })();
+      </script>
     </header>
 
     <main id="main" class="mx-auto w-full max-w-5xl px-6">
