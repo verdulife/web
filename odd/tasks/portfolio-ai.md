@@ -133,3 +133,8 @@ CORS: dev allow `http://localhost:4321`; no credentials. OPTIONS preflight 204.
 
 ### Frontend conversation UI behavior
 - Editorial conversation, not a chatbox: prompts as short serif headline asks; assistant answers as article prose with mono-meta "fuentes"; suggestions as links; arbitrary input always possible; graceful offline state (kicker "SERVICIO NO DISPONIBLE" + message + retry), no internal errors shown.
+## Delivery (2026-09-22)
+
+- Repo GitHub creado por el usuario: `github.com/verdulife/web`.
+- Pushed `main` + `feat/portfolio-ai`; user decided merge → **fast-forward a `main` (384c81d)** y eliminada `feat/portfolio-ai` (local + remoto). Solo existe `main`.
+- Deploy pendiente (decisión del usuario): Vercel (front, con `PUBLIC_WORKER_URL`) + `wrangler deploy` (worker, con `ALLOWED_ORIGINS` del dominio real). Ojo free tier neuronas con llama-3.3-70b (decenas de preguntas/día); alternativas frugales apuntadas (qwen3-30b-a3b-fp8, GLM-4.7-Flash).
