@@ -138,6 +138,204 @@
     background-size: 4px 4px;
   }
 
+  /* -------------------------------------------------------------------------
+     Site header chrome + full-height menu curtain (“sumario”). Fixed bar
+     height; the menu drops below the header to the bottom of the viewport
+     (never covers it) and reads as an editorial numbered index with a
+     pinned colophon. Plain classes: the client toggles `hidden` only.
+     ------------------------------------------------------------------------- */
+  .site-header {
+    --header-h: 4.25rem;
+    height: var(--header-h);
+  }
+
+  .menu-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0;
+  }
+
+  /* Two-bar burger that morphs into a ✕ while the curtain is open. */
+  .menu-button-icon {
+    position: relative;
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+  }
+
+  .menu-button-icon::before,
+  .menu-button-icon::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1.5px;
+    margin-top: -0.75px;
+    background-color: currentColor;
+    transition: transform 0.2s ease;
+  }
+
+  .menu-button-icon::before {
+    transform: translateY(-4px);
+  }
+
+  .menu-button-icon::after {
+    transform: translateY(4px);
+  }
+
+  #menu-button[aria-expanded="true"] .menu-button-icon::before {
+    transform: translateY(0) rotate(45deg);
+  }
+
+  #menu-button[aria-expanded="true"] .menu-button-icon::after {
+    transform: translateY(0) rotate(-45deg);
+  }
+
+  .site-menu {
+    position: fixed;
+    top: var(--header-h);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    background-color: var(--color-paper);
+  }
+
+  .site-menu:focus {
+    outline: none;
+  }
+
+  .site-menu-inner {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    max-width: 56rem;
+    margin-inline: auto;
+    padding: 2.25rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
+  }
+
+  .site-menu-kicker,
+  .site-menu-colophon {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+  }
+
+  .site-menu-kicker {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-line);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+  }
+
+  .site-menu-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-menu-link {
+    display: flex;
+    align-items: baseline;
+    gap: 1.1rem;
+    padding: 1.05rem 0;
+    border-top: 1px solid var(--color-line);
+    text-decoration: none;
+    color: var(--color-ink);
+  }
+
+  .site-menu-index {
+    min-width: 3ch;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    color: var(--color-ink-muted);
+    transition: color 0.15s ease;
+  }
+
+  .site-menu-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: var(--font-serif);
+    font-size: clamp(1.5rem, 1.1rem + 1.2vw, 2.5rem);
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    background-image: linear-gradient(var(--color-accent), var(--color-accent));
+    background-repeat: no-repeat;
+    background-size: 0% 2px;
+    background-position: 0 100%;
+    transition: background-size 0.25s ease, transform 0.2s ease;
+  }
+
+  .site-menu-arrow {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--color-accent);
+    opacity: 0;
+    transform: translateX(-0.5rem);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+
+  .site-menu-link[aria-current] .site-menu-arrow {
+    opacity: 1;
+    transform: none;
+  }
+
+  .site-menu-link[aria-current] .site-menu-label {
+    color: var(--color-accent);
+  }
+
+  .site-menu-link[aria-current] .site-menu-index {
+    color: var(--color-accent);
+  }
+
+  .site-menu-link:focus-visible .site-menu-arrow {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (hover: hover) {
+    .site-menu-link:hover .site-menu-index,
+    .site-menu-link:focus-visible .site-menu-index {
+      color: var(--color-accent);
+    }
+
+    .site-menu-link:hover .site-menu-label,
+    .site-menu-link:focus-visible .site-menu-label {
+      background-size: 100% 2px;
+      transform: translateX(0.5rem);
+    }
+
+    .site-menu-link:hover .site-menu-arrow {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .site-menu-colophon {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-line);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+  }
+
+  @media (min-width: 48rem) {
+    .site-menu-inner {
+      padding: 3rem 2rem calc(2rem + env(safe-area-inset-bottom));
+    }
+
+    .site-menu-link {
+      padding: 1.25rem 0;
+    }
+  }
+
   /* Long-form rendered Markdown (knowledge docs) inside <main>.
      Editorial calm, Tailwind-free: tokens only. */
   .prose {
@@ -303,6 +501,10 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+    /* width: 100% pins the cross size so auto-margin centering cannot
+       shrink-to-fit the thread while streaming content grows it. The
+       max-width below still caps it on wide screens. */
+    width: 100%;
     max-width: 44rem;
     margin-inline: auto;
     scroll-behavior: smooth;

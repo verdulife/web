@@ -67,11 +67,11 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
 
     <header
       class:list={[
-        "z-30 border-b border-line bg-paper",
+        "site-header z-30 border-b border-line bg-paper",
         shell === "chat" ? "relative" : "sticky top-0",
       ]}
     >
-      <div class="flex items-center justify-between px-5 py-4">
+      <div class="flex h-full items-center justify-between px-5">
         <a href="/" class="no-underline">
           <span class="font-serif text-3xl font-medium tracking-tight text-ink">V.</span>
         </a>
@@ -79,42 +79,50 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
         <button
           id="menu-button"
           type="button"
-          class="cursor-pointer border-0 bg-transparent font-mono text-xs uppercase tracking-[0.18em] text-ink transition-colors hover:text-accent"
+          aria-label="Menú"
+          class="menu-button cursor-pointer border-0 bg-transparent text-ink transition-colors hover:text-accent"
           aria-expanded="false"
           aria-controls="menu-panel"
         >
-          MENU
+          <span class="menu-button-icon" aria-hidden="true"></span>
         </button>
       </div>
 
-      <nav
-        id="menu-panel"
-        aria-label="Navegación"
-        class="absolute top-full left-0 right-0 border-b border-line bg-paper"
-        hidden
-      >
-        <ul class="divide-y divide-line">
-          {
-            SITE.nav.map((item) => {
-              const itemPath = item.href.replace(/\/+$/, "") || "/";
-              const isCurrent = itemPath === currentPath;
-              return (
-                <li>
-                  <a
-                    href={item.href}
-                    aria-current={isCurrent ? "page" : undefined}
-                    class:list={[
-                      "block px-5 py-3 font-mono text-sm uppercase tracking-[0.18em] no-underline transition-colors hover:text-accent",
-                      isCurrent ? "text-accent" : "text-ink",
-                    ]}
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              );
-            })
-          }
-        </ul>
+      <nav id="menu-panel" aria-label="Navegación" class="site-menu" tabindex="-1" hidden>
+        <div class="site-menu-inner">
+          <p class="site-menu-kicker">
+            <span>Sumario</span>
+            <span>Edición local — 2026</span>
+          </p>
+
+          <ul class="site-menu-list">
+            {
+              SITE.nav.map((item, i) => {
+                const itemPath = item.href.replace(/\/+$/, "") || "/";
+                const isCurrent = itemPath === currentPath;
+                const index = String(i + 1).padStart(2, "0");
+                return (
+                  <li class="site-menu-item">
+                    <a
+                      href={item.href}
+                      aria-current={isCurrent ? "page" : undefined}
+                      class="site-menu-link"
+                    >
+                      <span class="site-menu-index" aria-hidden="true">{index}</span>
+                      <span class="site-menu-label">{item.label}</span>
+                      <span class="site-menu-arrow" aria-hidden="true">→</span>
+                    </a>
+                  </li>
+                );
+              })
+            }
+          </ul>
+
+          <p class="site-menu-colophon">
+            <span>Fin del sumario</span>
+            <span>Verdu — Sitges</span>
+          </p>
+        </div>
       </nav>
 
       <script is:inline>
@@ -127,6 +135,10 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
             var willOpen = typeof open === "boolean" ? open : panel.hidden;
             panel.hidden = !willOpen;
             button.setAttribute("aria-expanded", String(willOpen));
+            // Lock background scroll while the curtain is open (the chat
+            // shell is already scroll-locked; regular pages need it here).
+            document.documentElement.style.overflow = willOpen ? "hidden" : "";
+            if (willOpen) panel.focus();
           }
 
           button.addEventListener("click", function (event) {
