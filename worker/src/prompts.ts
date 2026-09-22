@@ -13,9 +13,15 @@ const SCOPE_RULES = [
   "Responde de forma concisa, como un artículo breve, con un máximo de unas 220 palabras.",
 ].join("\n");
 
-const TOOL_NOTE =
+const TOOL_NOTE = [
   "Tienes una herramienta: get_knowledge_document(document_id) recupera el contenido completo de un documento " +
-  "del conocimiento. Úsala solo cuando la respuesta lo necesite; los id válidos son los de la lista anterior.";
+    "del conocimiento; los id válidos son los de la lista anterior.",
+  "Usa SIEMPRE get_knowledge_document(document_id) antes de responder sobre el perfil, los proyectos, las habilidades, " +
+    "los servicios, la experiencia o el contacto. No respondas de memoria sobre datos que no hayas leído en un documento.",
+  "Las preguntas sobre \"proyectos\" se responden consultando los documentos de proyecto de la lista CONOCIMIENTO " +
+    "DISPONIBLE (varios si hace falta); no existe un id \"projects\" y nunca debes inventar identificadores.",
+  "Si una pregunta no encaja con el índice, responde con un redireccionamiento cortés antes de consultar nada.",
+].join("\n");
 
 /** Stable prefix invariant: persona + scope rules are constant; only index lines follow. */
 export function buildSystemPrompt(index: KnowledgeIndexEntry[]): string {
