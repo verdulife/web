@@ -122,4 +122,153 @@
     background-repeat: repeat;
     background-size: 4px 4px;
   }
+
+  /* Long-form rendered Markdown (knowledge docs) inside <main>.
+     Editorial calm, Tailwind-free: tokens only. */
+  .prose {
+    max-width: 42rem;
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--color-ink);
+  }
+
+  .prose > :first-child {
+    margin-top: 0;
+  }
+
+  .prose p {
+    margin-block: 1.1rem;
+  }
+
+  .prose h2 {
+    margin-top: 2.5rem;
+    margin-bottom: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-line);
+    font-family: var(--font-serif);
+    font-size: 1.6rem;
+    font-weight: 500;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+
+  .prose h3 {
+    margin-top: 1.75rem;
+    margin-bottom: 0.5rem;
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    font-weight: 500;
+    line-height: 1.35;
+  }
+
+  .prose h4 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--color-ink-muted);
+  }
+
+  .prose ul,
+  .prose ol {
+    margin-block: 1.1rem;
+    padding-left: 1.4rem;
+  }
+
+  .prose ul {
+    list-style: square;
+  }
+
+  .prose ol {
+    list-style: decimal;
+  }
+
+  .prose li {
+    margin-block: 0.4rem;
+    padding-left: 0.15rem;
+  }
+
+  .prose li::marker {
+    color: var(--color-ink-muted);
+  }
+
+  .prose a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-decoration-color: var(--color-accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+
+  .prose a:hover {
+    background-color: var(--color-paper-deep);
+  }
+
+  .prose strong {
+    font-weight: 500;
+  }
+
+  .prose blockquote {
+    margin-block: 1.75rem;
+    padding-left: 1.1rem;
+    border-left: 2px solid var(--color-accent);
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--color-ink-muted);
+  }
+
+  .prose hr {
+    margin-block: 2.5rem;
+    border: 0;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .prose code {
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    background-color: var(--color-paper-deep);
+    padding: 0.1rem 0.3rem;
+  }
+
+  .prose pre {
+    margin-block: 1.5rem;
+    padding: 1rem;
+    background-color: var(--color-paper-deep);
+    border: 1px solid var(--color-line);
+    overflow-x: auto;
+  }
+
+  .prose pre code {
+    background: none;
+    padding: 0;
+    font-size: 0.85rem;
+  }
+
+  .prose table {
+    width: 100%;
+    margin-block: 1.5rem;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+
+  .prose th,
+  .prose td {
+    border-bottom: 1px solid var(--color-line);
+    padding: 0.5rem 0.65rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .prose th {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-ink-muted);
+  }
 }

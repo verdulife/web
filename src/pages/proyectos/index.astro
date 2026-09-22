@@ -1,0 +1,49 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+
+const projects = (await getCollection("knowledge"))
+  .filter((entry) => entry.data.kind === "project")
+  .sort((a, b) => a.data.title.localeCompare(b.data.title, "es"));
+---
+
+<Layout title="Proyectos">
+  <article class="py-14 sm:py-20">
+    <p class="kicker">PROYECTOS</p>
+
+    <h1 class="mt-6 font-serif text-4xl font-medium leading-[1.05] tracking-tight sm:text-5xl">
+      Proyectos
+    </h1>
+
+    <div class="editorial-rule--double mt-8" aria-hidden="true"></div>
+
+    <ol class="mt-12">
+      {
+        projects.map((entry, index) => (
+          <li class="grid gap-1 border-b border-line py-6 sm:grid-cols-[auto,1fr] sm:gap-6">
+            <span class="mono-meta pt-1" aria-hidden="true">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+
+            <div>
+              <h2 class="font-serif text-2xl font-medium tracking-tight">
+                <a
+                  href={`/proyectos/${entry.id.replace("projects/", "")}/`}
+                  class="no-underline hover:text-accent"
+                >
+                  {entry.data.title}
+                </a>
+              </h2>
+
+              <p class="mono-meta mt-2">ID: {entry.data.id}</p>
+
+              <p class="mt-3 max-w-2xl text-ink-muted">
+                {entry.data.description}
+              </p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </article>
+</Layout>

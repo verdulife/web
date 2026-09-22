@@ -1,0 +1,25 @@
+---
+import { getEntry, render } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+
+const entry = await getEntry("knowledge", "about");
+if (!entry) throw new Error("Falta el documento de conocimiento: about");
+
+const { Content } = await render(entry);
+---
+
+<Layout title={entry.data.title} description={entry.data.description}>
+  <article class="py-14 sm:py-20">
+    <p class="kicker">PERFIL</p>
+
+    <h1 class="mt-6 font-serif text-4xl font-medium leading-[1.05] tracking-tight sm:text-5xl">
+      {entry.data.title}
+    </h1>
+
+    <div class="editorial-rule mt-8" aria-hidden="true"></div>
+
+    <div class="prose mt-10">
+      <Content />
+    </div>
+  </article>
+</Layout>

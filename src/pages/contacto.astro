@@ -1,0 +1,45 @@
+---
+import { getEntry, render } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+import { SITE } from "../lib/site";
+
+const entry = await getEntry("knowledge", "contact");
+if (!entry) throw new Error("Falta el documento de conocimiento: contact");
+
+const { Content } = await render(entry);
+
+const contactLinks = [
+  { label: "verdu.dev", href: SITE.url },
+  { label: "linkedin.com/in/albert-verdu", href: "https://linkedin.com/in/albert-verdu" },
+  { label: "github.com/verdulife", href: "https://github.com/verdulife" },
+];
+---
+
+<Layout title={entry.data.title} description={entry.data.description}>
+  <article class="py-14 sm:py-20">
+    <p class="kicker">CONTACTO</p>
+
+    <h1 class="mt-6 font-serif text-4xl font-medium leading-[1.05] tracking-tight sm:text-5xl">
+      {entry.data.title}
+    </h1>
+
+    <div class="editorial-rule mt-8" aria-hidden="true"></div>
+
+    <ul class="mono-meta mt-6 flex flex-wrap gap-x-3 gap-y-1 border-b border-line pb-4">
+      {
+        contactLinks.map((link, index) => (
+          <li class="flex items-center gap-3">
+            {index > 0 && <span aria-hidden="true">·</span>}
+            <a href={link.href} class="no-underline hover:text-accent">
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="prose mt-8">
+      <Content />
+    </div>
+  </article>
+</Layout>
