@@ -73,7 +73,9 @@ export class GitHubKnowledgeProvider implements KnowledgeProvider {
     const response = await fetch(url, { headers });
     if (!response.ok) return null;
     const body = await response.text();
-    const content = body.replace(/<!--[\s\S]*?-->/g, "").trim().slice(0, this.config.maxChars);
+    const content = stripLeadingFrontmatter(body.replace(/<!--[\s\S]*?-->/g, ""))
+      .trim()
+      .slice(0, this.config.maxChars);
     const title = this.indexEntries.find((entry) => entry.id === id)?.title ?? id;
     return { id, title, content };
   }
@@ -81,6 +83,19 @@ export class GitHubKnowledgeProvider implements KnowledgeProvider {
   index(): KnowledgeIndexEntry[] {
     return this.indexEntries;
   }
+}
+
+/**
+ * Removes a leading YAML frontmatter block (between the first two "---" fences)
+ * so raw GitHub content matches the bundled snapshot, which strips it at
+ * generation time.
+ */
+function stripLeadingFrontmatter(text: string): string {
+  const lines = text.split(/\r?\n/);
+  if (lines[0]?.trim() !== "---") return text;
+  const end = lines.findIndex((line, index) => index > 0 && line.trim() === "---");
+  if (end === -1) return text;
+  return lines.slice(end + 1).join("\n");
 }
 
 export interface KnowledgeEnvShape extends LimitsEnvShape {

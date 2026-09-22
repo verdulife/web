@@ -118,3 +118,21 @@ export function trimMessages(messages: ChatMessage[], max: number): ChatMessage[
   if (kept[0]?.role === "assistant") return kept.slice(1);
   return kept;
 }
+
+/**
+ * Patterns that signal prompt-extraction or generic-LLM abuse attempts
+ * (Spanish-first, small on purpose). The worker reinforces the system prompt
+ * guard; it is not a substitute for it.
+ */
+export const SCOPE_ABUSE_PATTERNS: RegExp[] = [
+  /ignore (las|the) instruc/i,
+  /system prompt|prompt del sistema|instrucciones internas|reveal your (tools|prompt)/i,
+  /cu[aá]l es tu prompt/i,
+  /eres gratis|free api/i,
+];
+
+/** True when a user message matches any scope-abuse pattern. */
+export function detectScopeAbuse(content: string): boolean {
+  const normalized = content.trim().toLowerCase();
+  return SCOPE_ABUSE_PATTERNS.some((pattern) => pattern.test(normalized));
+}
