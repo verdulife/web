@@ -135,18 +135,26 @@ const todayIso = new Date().toISOString().slice(0, 10);
         {
           featuredProjects.map((entry, index) => (
             <li class:list={["py-6", index > 0 && "editorial-rule"]}>
-              <h3 class="font-serif text-2xl font-medium tracking-tight">
-                <a
-                  href={`/proyectos/${entry.id.replace("projects/", "")}/`}
-                  class="no-underline hover:text-accent"
-                >
-                  {entry.data.title}
-                </a>
-              </h3>
+              <div class="grid gap-1 sm:grid-cols-[auto,1fr] sm:gap-6">
+                <span class="mono-meta pt-1" aria-hidden="true">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
 
-              <p class="mono-meta mt-2">ID: {entry.data.id}</p>
+                <div>
+                  <h3 class="font-serif text-2xl font-medium tracking-tight">
+                    <a
+                      href={`/proyectos/${entry.id.replace("projects/", "")}/`}
+                      class="no-underline hover:text-accent"
+                    >
+                      {entry.data.title}
+                    </a>
+                  </h3>
 
-              <p class="mt-2 max-w-2xl text-ink-muted">{entry.data.description}</p>
+                  <p class="mono-meta mt-2">ID: {entry.data.id}</p>
+
+                  <p class="mt-2 max-w-2xl text-ink-muted">{entry.data.description}</p>
+                </div>
+              </div>
             </li>
           ))
         }
@@ -161,16 +169,27 @@ const todayIso = new Date().toISOString().slice(0, 10);
     <section class="mt-16 sm:mt-20">
       <h2 class="kicker">SERVICIOS</h2>
 
-      <ul class="mt-8 max-w-2xl space-y-3">
+      <ol class="mt-8">
         {
-          services.map((service) => (
-            <li>
-              <span class="font-serif text-lg text-ink">{service.title}</span>
-              <span class="text-ink-muted"> — {service.detail}</span>
+          services.map((service, index) => (
+            <li class:list={["py-5", index > 0 && "editorial-rule"]}>
+              <div class="grid gap-1 sm:grid-cols-[auto,1fr] sm:gap-6">
+                <span class="mono-meta pt-1" aria-hidden="true">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+
+                <div>
+                  <h3 class="font-serif text-2xl font-medium tracking-tight">{service.title}</h3>
+
+                  <p class="mono-meta mt-2 max-w-2xl normal-case tracking-[0.04em]">
+                    {service.detail}
+                  </p>
+                </div>
+              </div>
             </li>
           ))
         }
-      </ul>
+      </ol>
 
       <p class="mono-meta mt-6">
         <a href="/servicios" class="no-underline hover:text-accent">Servicios completos →</a>
@@ -199,5 +218,12 @@ const todayIso = new Date().toISOString().slice(0, 10);
         >
       </p>
     </section>
+
+    {/* 7 — Colophon */}
+    <div class="editorial-rule--double mt-10" aria-hidden="true"></div>
+
+    <p class="mono-meta mt-6 pb-4 text-center" aria-hidden="true">
+      — · — FIN DE LA EDICIÓN — · —
+    </p>
   </article>
 </Layout>

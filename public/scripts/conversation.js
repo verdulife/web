@@ -38,6 +38,48 @@
     "Demasiadas preguntas en poco tiempo. Espera un momento y vuelve a intentarlo.";
   var UNAVAILABLE_MESSAGE = "El servicio de respuestas no está disponible ahora mismo.";
 
+  var HEALTH_TIMEOUT_MS = 3_000;
+  var STATUS_ONLINE_TEXT = "Asistente en línea";
+  var STATUS_OFFLINE_TEXT = "Asistente sin conexión";
+
+  /**
+   * Live service status label (task 7). Runs once at module init, right after
+   * the constants exist and before anything else, and never blocks the page:
+   * a non-200 response, a network error or the 3s abort all mean "offline".
+   */
+  function pingWorkerStatus() {
+    var statusElement = document.querySelector("#" + HOOK_ROOT_ID + " .ask-status");
+    if (!statusElement) return;
+
+    var controller = new AbortController();
+    var timeout = window.setTimeout(function () {
+      controller.abort();
+    }, HEALTH_TIMEOUT_MS);
+
+    function settle(online) {
+      window.clearTimeout(timeout);
+      statusElement.textContent = online ? STATUS_ONLINE_TEXT : STATUS_OFFLINE_TEXT;
+      statusElement.classList.toggle("ask-status-on", online);
+      statusElement.classList.toggle("ask-status-off", !online);
+    }
+
+    var workerUrl = window.__PORTFOLIO_WORKER_URL ?? WORKER_URL_FALLBACK;
+
+    try {
+      fetch(workerUrl + "/health", { method: "GET", signal: controller.signal })
+        .then(function (response) {
+          settle(response.ok === true && response.status === 200);
+        })
+        .catch(function () {
+          settle(false);
+        });
+    } catch (error) {
+      settle(false);
+    }
+  }
+
+  pingWorkerStatus();
+
   function unavailableError() {
     return { code: "ai_unavailable", message: UNAVAILABLE_MESSAGE, retryable: true };
   }

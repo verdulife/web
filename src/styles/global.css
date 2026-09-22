@@ -481,4 +481,26 @@
     color: var(--color-accent);
     border-color: var(--color-accent);
   }
+
+  /* Live worker status label, filled by public/scripts/conversation.js after
+     the /health ping. Mono meta styling only; no animation. */
+  .ask-status {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--color-ink-muted);
+  }
+
+  .ask-status-on {
+    color: var(--color-ink);
+  }
+
+  .ask-status-off {
+    color: var(--color-ink-muted);
+  }
+
+  .ask-status-off::before {
+    content: "— ";
+    color: var(--color-accent);
+  }
 }
