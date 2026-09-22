@@ -289,7 +289,6 @@
     overflow-y: auto;
     max-width: 44rem;
     margin-inline: auto;
-    padding: 0.75rem 0 1rem;
     scroll-behavior: smooth;
   }
 
@@ -297,11 +296,13 @@
     outline: none;
   }
   .ask-assistant .ask-paragraph {
+    margin-block: 0;
+    padding: 1.25rem 1rem;
+    border-top: 1px solid var(--color-line);
+    max-width: 60ch;
     font-family: var(--font-serif);
     font-size: clamp(1.5rem, 1.05rem + 1.6vw, 2.1rem);
     line-height: 1.15;
-    max-width: 60ch;
-    margin-block: 1.5rem;
     color: var(--color-ink);
   }
 
@@ -314,18 +315,16 @@
   }
 
   .ask-user .ask-ask {
+    margin-block: 0;
+    padding: 1.25rem 1rem;
+    border-top: 1px solid var(--color-line);
+    text-align: right;
+    max-width: 40rem;
+    margin-left: auto;
     font-family: var(--font-serif);
     font-size: 1.0625rem;
     line-height: 1.65;
-    max-width: 40rem;
     color: var(--color-ink);
-  }
-
-  .ask-fuentes {
-    font-family: var(--font-serif);
-    font-size: 0.85rem;
-    color: var(--color-ink-muted);
-    margin-top: 0.5rem;
   }
 
   .ask-composer {

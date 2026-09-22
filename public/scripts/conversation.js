@@ -228,9 +228,9 @@
 
     /**
      * Appends an assistant turn and streams its reply into a single
-     * .ask-paragraph (textContent only); sources appear after typing ends.
+     * .ask-paragraph (textContent only).
      */
-    function buildAssistantTurn(text, sources) {
+    function buildAssistantTurn(text) {
       return new Promise(function (resolve) {
         var turn = document.createElement("div");
         turn.className = "ask-assistant";
@@ -243,12 +243,6 @@
         scrollThreadBottom(thread);
 
         streamText(paragraph, text, thread, function () {
-          if (sources.length > 0) {
-            var fuentes = document.createElement("p");
-            fuentes.className = "ask-fuentes";
-            fuentes.textContent = "Fuentes: " + sources.join(" · ");
-            turn.append(fuentes);
-          }
           scrollThreadBottom(thread);
           resolve();
         });
@@ -365,7 +359,7 @@
       try {
         var response = await postChat(history, controller.signal);
         history.push({ role: "assistant", content: response.reply });
-        await buildAssistantTurn(response.reply, response.sources);
+        await buildAssistantTurn(response.reply);
       } catch (error) {
         var failure = readFailure(error);
         showError(failure.code, failure.message);
