@@ -144,19 +144,6 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
       <slot />
     </main>
 
-    <footer class="mt-16 border-t border-line">
-      <div
-        class="mx-auto flex w-full max-w-5xl flex-col gap-1 px-6 py-6 font-mono text-[0.7rem] tracking-[0.08em] text-ink-muted sm:flex-row sm:items-center sm:justify-between"
-      >
-        <p class="flex items-center gap-3">
-          <span>Diseño editorial y tipografía</span>
-          <span class="h-px w-8 bg-line" aria-hidden="true"></span>
-          <span>{SITE.name}, 2026</span>
-        </p>
-        <p>Astro · Bun · Tailwind CSS</p>
-      </div>
-    </footer>
-
     <div class="texture" aria-hidden="true"></div>
   </body>
 </html>

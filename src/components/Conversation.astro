@@ -26,13 +26,6 @@ const suggestions = [
         experiencia. ¿En qué puedo ayudarte?
       </p>
     </div>
-  </div>
-
-  <div class="ask-composer">
-    <div class="flex items-baseline justify-between gap-4">
-      <span id="ask-status" class="ask-status"></span>
-      <span class="ask-hint">Intro para publicar</span>
-    </div>
 
     <div class="ask-suggestions" role="group" aria-label="Sugerencias">
       {
@@ -43,18 +36,17 @@ const suggestions = [
         ))
       }
     </div>
+  </div>
 
-    <form class="ask-form" aria-labelledby="conversation-heading">
-      <h2 id="conversation-heading" class="sr-only">Conversación</h2>
+  <div class="ask-composer">
+    <form class="ask-form">
       <label for="ask-input" class="sr-only">Tu pregunta</label>
-      <input id="ask-input" class="ask-input" type="text" autocomplete="off" />
-      <button type="submit" class="ask-button">Publicar</button>
+      <input id="ask-input" class="ask-input" placeholder="Pregunta algo sobre mí…" autocomplete="off" />
+      <button type="submit" class="ask-button" aria-label="Enviar pregunta">→</button>
     </form>
   </div>
 
-  <div class="ask-thinking" role="status" hidden>
-    <span class="ask-thinking-text">Redactando artículo…</span>
-  </div>
+  <div class="ask-thinking" role="status" hidden></div>
 
   <div class="ask-error" role="status" hidden></div>
 </div>

@@ -287,7 +287,7 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
-    padding: 1.5rem 1rem 1rem;
+    padding: 1rem 1.25rem 0.5rem;
     scroll-behavior: smooth;
   }
 
@@ -326,30 +326,21 @@
     margin-top: 0.5rem;
   }
 
-  .ask-status,
-  .ask-hint,
-  .ask-thinking,
-  .ask-error {
-    font-family: var(--font-serif);
-    font-size: 0.85rem;
-    color: var(--color-ink-muted);
-  }
-
-  .ask-status-on {
-    color: var(--color-ink);
-  }
-
   .ask-composer {
-    border-top: 1px solid var(--color-line);
-    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
     background: var(--color-paper);
+    border-top: 1px solid var(--color-line);
+    padding: 0.5rem 1.25rem calc(0.5rem + env(safe-area-inset-bottom));
   }
 
   .ask-suggestions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.35rem 0.75rem;
-    margin-bottom: 0.75rem;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    margin-bottom: 1.25rem;
   }
 
   .ask-suggestion {
@@ -357,11 +348,10 @@
     text-transform: uppercase;
     font-size: 0.68rem;
     letter-spacing: 0.14em;
-    color: var(--color-ink-muted);
+    color: var(--color-ink);
     background: transparent;
-    border: 0;
-    border-bottom: 1px solid var(--color-line);
-    padding: 0 0 0.2rem;
+    border: 1px solid var(--color-line);
+    padding: 0.35rem 0.7rem;
     cursor: pointer;
     transition: color 0.15s ease, border-color 0.15s ease;
   }
@@ -374,20 +364,25 @@
 
   .ask-form {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     gap: 0.75rem;
   }
 
   .ask-input {
     flex: 1;
     min-width: 0;
-    padding: 0.4rem 0;
+    padding: 0.35rem 0;
     font-family: var(--font-serif);
     font-size: 1.0625rem;
     color: var(--color-ink);
     background: transparent;
     border: 0;
     border-bottom: 1px solid var(--color-line);
+  }
+
+  .ask-input::placeholder {
+    color: var(--color-ink-muted);
+    opacity: 1;
   }
 
   .ask-input:focus {
@@ -397,11 +392,14 @@
 
   .ask-button {
     flex-shrink: 0;
-    padding: 0.45rem 0.8rem;
+    height: 2.5rem;
+    aspect-ratio: 1;
+    padding: 0;
+    display: grid;
+    place-items: center;
     font-family: var(--font-mono);
-    text-transform: uppercase;
-    font-size: 0.68rem;
-    letter-spacing: 0.14em;
+    font-size: 1.05rem;
+    line-height: 1;
     color: var(--color-ink);
     background: transparent;
     border: 1px solid var(--color-ink);
@@ -421,9 +419,8 @@
 
   .ask-thinking {
     display: flex;
-    gap: 0.4rem;
-    align-items: center;
-    padding: 0.75rem 1rem;
+    gap: 0.35rem;
+    padding: 0.75rem 1.25rem;
   }
 
   .thinking-dot {
@@ -468,6 +465,9 @@
   .ask-error {
     padding: 0.75rem 1rem;
     border-top: 1px solid var(--color-line);
+    font-family: var(--font-serif);
+    font-size: 0.85rem;
+    color: var(--color-ink-muted);
   }
 
   .ask-error strong {

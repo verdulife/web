@@ -10,14 +10,16 @@
  * Hook contract (single root element, no external dependencies):
  *   root = document.getElementById("conversacion")
  *   query classes under root:
- *     .ask-status        status label, filled after the /health ping
  *     .ask-form          the <form>; submit triggers a question
  *     .ask-input         text input (Enter submits natively)
- *     .ask-button        submit button ("Publicar")
- *     .ask-suggestions   container of .ask-suggestion buttons (data-question)
+ *     .ask-button        icon-only submit button (the → arrow)
  *     .ask-thread        role="log" region where turns are appended/scrolled
  *     .ask-thinking      hidden thinking row shown while a request is in flight
  *     .ask-error         hidden error row; its content is built here
+ *
+ * The .ask-suggestions widget is built and inserted by this module, after the
+ * intro turn once the greeting finishes streaming. The server-rendered copy
+ * (no-JS/SEO resilience) lives in the thread and is removed at init.
  *
  * Worker base URL — single source: the component renders a tiny inline script
  * that assigns window.__PORTFOLIO_WORKER_URL (from the URL interpolated on a
@@ -34,7 +36,6 @@
   var WORKER_URL_FALLBACK = "http://localhost:8787";
   var MAX_CONTEXT_MESSAGES = 8;
   var REQUEST_TIMEOUT_MS = 25_000;
-  var HEALTH_TIMEOUT_MS = 3_000;
 
   var INTRO_TEXT =
     "Hola, soy Albert Verdú, desarrollador web y diseñador gráfico con más de 20 años de experiencia. ¿En qué puedo ayudarte?";
@@ -42,47 +43,6 @@
   var RATE_LIMIT_MESSAGE =
     "Demasiadas preguntas en poco tiempo. Espera un momento y vuelve a intentarlo.";
   var UNAVAILABLE_MESSAGE = "El servicio de respuestas no está disponible ahora mismo.";
-
-  var STATUS_ONLINE_TEXT = "Asistente en línea";
-  var STATUS_OFFLINE_TEXT = "Asistente sin conexión";
-
-  /**
-   * Live service status label. Runs once at module init and never blocks the
-   * page: a non-200 response, a network error or the 3s abort all mean
-   * "offline".
-   */
-  function pingWorkerStatus() {
-    var statusElement = document.querySelector("#" + HOOK_ROOT_ID + " .ask-status");
-    if (!statusElement) return;
-
-    var controller = new AbortController();
-    var timeout = window.setTimeout(function () {
-      controller.abort();
-    }, HEALTH_TIMEOUT_MS);
-
-    function settle(online) {
-      window.clearTimeout(timeout);
-      statusElement.textContent = online ? STATUS_ONLINE_TEXT : STATUS_OFFLINE_TEXT;
-      statusElement.classList.toggle("ask-status-on", online);
-      statusElement.classList.toggle("ask-status-off", !online);
-    }
-
-    var workerUrl = window.__PORTFOLIO_WORKER_URL ?? WORKER_URL_FALLBACK;
-
-    try {
-      fetch(workerUrl + "/health", { method: "GET", signal: controller.signal })
-        .then(function (response) {
-          settle(response.ok === true && response.status === 200);
-        })
-        .catch(function () {
-          settle(false);
-        });
-    } catch (error) {
-      settle(false);
-    }
-  }
-
-  pingWorkerStatus();
 
   function unavailableError() {
     return { code: "ai_unavailable", message: UNAVAILABLE_MESSAGE, retryable: true };
@@ -244,22 +204,24 @@
     var form = root.querySelector(".ask-form");
     var input = root.querySelector(".ask-input");
     var submitButton = root.querySelector(".ask-button");
-    var suggestionsWrap = root.querySelector(".ask-suggestions");
     var thread = root.querySelector(".ask-thread");
     var thinking = root.querySelector(".ask-thinking");
     var errorBox = root.querySelector(".ask-error");
 
-    if (
-      !form ||
-      !input ||
-      !submitButton ||
-      !suggestionsWrap ||
-      !thread ||
-      !thinking ||
-      !errorBox
-    ) {
+    if (!form || !input || !submitButton || !thread || !thinking || !errorBox) {
       return;
     }
+
+    // The server-rendered suggestions live in the thread and are removed at
+    // init; the widget is rebuilt here and inserted after the intro turn.
+    var suggestions = [
+      { label: "Sobre mí", question: "¿Quién eres y a qué te dedicas?" },
+      { label: "Proyectos", question: "¿Qué proyectos has desarrollado?" },
+      { label: "Habilidades", question: "¿Qué habilidades tienes?" },
+      { label: "Servicios", question: "¿Qué servicios ofreces?" },
+      { label: "Contacto", question: "¿Cómo puedo contactar contigo?" },
+    ];
+    var suggestionsWrap = null;
 
     var history = [];
     var busy = false;
@@ -297,17 +259,54 @@
       busy = value;
       input.disabled = value;
       submitButton.disabled = value;
-      var buttons = suggestionsWrap.querySelectorAll(".ask-suggestion");
-      for (var i = 0; i < buttons.length; i += 1) buttons[i].disabled = value;
+      if (suggestionsWrap) {
+        var buttons = suggestionsWrap.querySelectorAll(".ask-suggestion");
+        for (var i = 0; i < buttons.length; i += 1) buttons[i].disabled = value;
+      }
+    }
+
+    /**
+     * Builds the suggestions widget (buttons with data-question) and wires the
+     * click delegation that submits the chosen question. Inserted in-flow after
+     * the intro turn, so it scrolls away naturally with the thread.
+     */
+    function buildSuggestions() {
+      var wrap = document.createElement("div");
+      wrap.className = "ask-suggestions";
+      wrap.setAttribute("role", "group");
+      wrap.setAttribute("aria-label", "Sugerencias");
+
+      for (var i = 0; i < suggestions.length; i += 1) {
+        var button = document.createElement("button");
+        button.type = "button";
+        button.className = "ask-suggestion";
+        button.dataset.question = suggestions[i].question;
+        button.textContent = suggestions[i].label;
+        wrap.append(button);
+      }
+
+      wrap.addEventListener("click", function (event) {
+        var target = event.target;
+        if (!(target instanceof Element)) return;
+
+        var button = target.closest(".ask-suggestion");
+        if (!button || busy) return;
+
+        var question = button.dataset.question ?? "";
+        if (question === "") return;
+
+        input.value = question;
+        void ask(question);
+      });
+
+      return wrap;
     }
 
     function setThinking(value) {
-      if (value && !thinking.querySelector(".ask-thinking-dots")) {
-        var dots = document.createElement("span");
-        dots.className = "ask-thinking-dots";
-        dots.setAttribute("aria-hidden", "true");
-        dots.append(createDot(), createDot(), createDot());
-        thinking.append(dots);
+      // Dots only: the row carries no text now. They sit directly inside
+      // .ask-thinking so their nth-child stagger applies.
+      if (value && thinking.querySelectorAll(".thinking-dot").length === 0) {
+        thinking.append(createDot(), createDot(), createDot());
       }
       thinking.hidden = !value;
     }
@@ -394,8 +393,9 @@
      * with the typewriter effect. The composer stays locked while it types.
      */
     function streamIntro() {
-      var introElement = thread.querySelector(".ask-assistant");
-      if (introElement) introElement.remove();
+      // The server-rendered intro + suggestions are no-JS/SEO resilience:
+      // drop both and re-stream the greeting through the typewriter.
+      thread.replaceChildren();
 
       var turn = document.createElement("div");
       turn.className = "ask-assistant";
@@ -408,6 +408,8 @@
 
       setBusy(true);
       streamText(paragraph, INTRO_TEXT, thread, function () {
+        suggestionsWrap = buildSuggestions();
+        turn.after(suggestionsWrap);
         scrollThreadBottom(thread);
         setBusy(false);
         input.focus();
@@ -423,20 +425,6 @@
         return;
       }
 
-      void ask(question);
-    });
-
-    suggestionsWrap.addEventListener("click", function (event) {
-      var target = event.target;
-      if (!(target instanceof Element)) return;
-
-      var button = target.closest(".ask-suggestion");
-      if (!button || busy) return;
-
-      var question = button.dataset.question ?? "";
-      if (question === "") return;
-
-      input.value = question;
       void ask(question);
     });
 
