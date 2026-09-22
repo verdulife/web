@@ -297,13 +297,18 @@
   }
   .ask-assistant .ask-paragraph {
     margin-block: 0;
-    padding: 1.25rem 1rem;
+    padding: 1.25rem 0;
     border-top: 1px solid var(--color-line);
     max-width: 60ch;
     font-family: var(--font-serif);
     font-size: clamp(1.5rem, 1.05rem + 1.6vw, 2.1rem);
     line-height: 1.15;
     color: var(--color-ink);
+  }
+
+  .ask-paragraph--first {
+    border-top: 0;
+    padding-top: 0;
   }
 
   .ask-assistant > :first-child {
@@ -377,8 +382,6 @@
     font-size: 1.0625rem;
     color: var(--color-ink);
     background: transparent;
-    border: 0;
-    border-bottom: 1px solid var(--color-line);
   }
 
   .ask-input::placeholder {
@@ -388,7 +391,6 @@
 
   .ask-input:focus {
     outline: none;
-    border-bottom-color: var(--color-accent);
   }
 
   .ask-button {

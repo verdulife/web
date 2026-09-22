@@ -395,7 +395,7 @@
       turn.className = "ask-assistant";
 
       var paragraph = document.createElement("p");
-      paragraph.className = "ask-paragraph";
+      paragraph.className = "ask-paragraph ask-paragraph--first";
       turn.append(paragraph);
 
       thread.append(turn);
