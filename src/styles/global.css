@@ -306,7 +306,7 @@
     color: var(--color-ink);
   }
 
-  .ask-paragraph--first {
+  .ask-assistant .ask-paragraph--first {
     border-top: 0;
     padding-top: 0;
   }
