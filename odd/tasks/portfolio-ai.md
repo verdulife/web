@@ -50,6 +50,13 @@ The full project brief (sections 1–21) is the contract. Condensed invariants:
 - Fix: home `.git` removed with explicit user authorization; then user-authorized **session restart** (fresh session with cwd `C:/Users/verdu/verdu` binds to `verdu/.git`).
 - Pending before restart: README write refused inline by the multi-file gate (needs delegation) — task 1 final file. Resume: write README.md (content in README section of this doc is authoritative in the brief above; repro: `odd/tasks/portfolio-ai.md`, Engram observation #66), then first work-unit commit on `main` (branch point), create `feat/portfolio-ai`, then tasks 2–10.
 
+## Environment note (machine switch · wrangler login)
+
+- Moved to a new machine (repo at `/home/verdu/web`, Linux; bun 1.3.12). Worker deps were missing: `bun --cwd worker install` (wrangler 4.136.2).
+- Workers AI auth is machine-level, not repo-level: no `~/.wrangler` or `CLOUDFLARE_*` on the new machine ⇒ `/api/chat` degraded to `502 ai_unavailable` (as designed).
+- Fix: `wrangler login` from `worker/` (OAuth, account `Verdu@live.com's Account`, `ai:write` scope). Credentials at `~/.config/.wrangler/config/default.toml`. Re-test after reinstall/reboot via `wrangler whoami`.
+- Verified end-to-end locally: `wrangler dev --port 8787` + `POST /api/chat` → real Workers AI reply with `sources` (`alter`, `botanic`, `facturasgratis`). AI bindings always access remote resources, even in local dev (Cloudflare docs; wrangler emits the same warning) ⇒ local testing consumes free-tier neuron budget.
+
 ## Tasks
 
 | # | Task | Status | Route | ~lines | TDD/checks | Outcome |
