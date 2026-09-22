@@ -1,0 +1,93 @@
+[
+  {
+    "id": "about",
+    "path": "about",
+    "kind": "about",
+    "title": "Sobre mí",
+    "description": "Diseñador gráfico y desarrollador frontend de Barcelona con más de 15 años de experiencia."
+  },
+  {
+    "id": "contact",
+    "path": "contact",
+    "kind": "contact",
+    "title": "Contacto",
+    "description": "Canales públicos: portfolio, LinkedIn y GitHub."
+  },
+  {
+    "id": "experience",
+    "path": "experience",
+    "kind": "experience",
+    "title": "Experiencia",
+    "description": "Más de 15 años entre el diseño gráfico y el frontend, con clientes y colaboraciones destacadas y productos propios."
+  },
+  {
+    "id": "alter",
+    "path": "projects/alter",
+    "kind": "project",
+    "title": "Alter",
+    "description": "Secretario personal virtual: servicio modular en Go con planificador y almacén de eventos en SQLite."
+  },
+  {
+    "id": "botanic",
+    "path": "projects/botanic",
+    "kind": "project",
+    "title": "Botanic",
+    "description": "Marketplace P2P de plantas: donde las plantas se encuentran con la gente."
+  },
+  {
+    "id": "facturasgratis",
+    "path": "projects/facturasgratis",
+    "kind": "project",
+    "title": "Facturas Gratis",
+    "description": "Herramienta gratuita de facturación online: facturas, presupuestos, albaranes, clientes y productos."
+  },
+  {
+    "id": "gapcalc",
+    "path": "projects/gapcalc",
+    "kind": "project",
+    "title": "GapCalc",
+    "description": "Calculadora de precios para servicios de imprenta con panel de administración protegido."
+  },
+  {
+    "id": "gaplogic",
+    "path": "projects/gaplogic",
+    "kind": "project",
+    "title": "Gaplogic",
+    "description": "Web y ecosistema digital de Gaplogic: web WordPress, POS gapcloud y reporte de tareas."
+  },
+  {
+    "id": "kncelados",
+    "path": "projects/kncelados",
+    "kind": "project",
+    "title": "Kncelados (podcast)",
+    "description": "Web oficial del podcast Kncelados, con episodios, colecciones y cortos."
+  },
+  {
+    "id": "mando",
+    "path": "projects/mando",
+    "kind": "project",
+    "title": "Mando",
+    "description": "Convierte iPhones y navegadores en mandos virtuales de Xbox 360 para Windows."
+  },
+  {
+    "id": "weprintpdf",
+    "path": "projects/weprintpdf",
+    "kind": "project",
+    "title": "WePrintPDF",
+    "description": "Diseños imprimibles personalizables: calendarios, agendas, listas y otros."
+  },
+  {
+    "id": "services",
+    "path": "services",
+    "kind": "services",
+    "title": "Servicios",
+    "description": "Diseño y desarrollo web, diseño gráfico y de imprenta, UI/UX con enfoque design-first y automatización."
+  },
+  {
+    "id": "skills",
+    "path": "skills",
+    "kind": "skills",
+    "title": "Habilidades",
+    "description": "Tecnologías principales y áreas de diseño, del día a día y de proyectos puntuales."
+  }
+]

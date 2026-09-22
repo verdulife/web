@@ -1,0 +1,53 @@
+export interface Env {
+  AI: any;
+  MODEL_ID: string;
+  GITHUB_REPO: string;
+  GITHUB_REF: string;
+  GITHUB_TOKEN: string;
+  ALLOWED_ORIGINS: string;
+  RATE_LIMIT_PER_MINUTE: string;
+  MAX_MESSAGES: string;
+  MAX_INPUT_CHARS: string;
+  MAX_OUTPUT_TOKENS: string;
+  MAX_TOOL_CALLS: string;
+  DOC_MAX_CHARS: string;
+  RATE_LIMITER?: {
+    limit(opts: { key: string }): Promise<{ success: boolean; reset?: unknown }>;
+  };
+}
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
+export interface ChatRequest {
+  messages: ChatMessage[];
+  threadId?: string;
+}
+
+export interface ChatResponse {
+  reply: string;
+  sources: string[];
+}
+
+export interface ErrorResponse {
+  error: {
+    code: string;
+    message: string;
+    retryable: boolean;
+  };
+}
+
+export interface KnowledgeIndexEntry {
+  id: string;
+  path: string;
+  title: string;
+  description: string;
+}
+
+export interface KnowledgeDocument {
+  id: string;
+  title: string;
+  content: string;
+}

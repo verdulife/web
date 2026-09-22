@@ -1,0 +1,18 @@
+{
+  "name": "verdu-chat-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --port 8787",
+    "check": "tsc --noEmit",
+    "test": "vitest run",
+    "gen:knowledge": "bun scripts/generate-knowledge-snapshot.js",
+    "types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "wrangler": "^4.36.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.1.0",
+    "@cloudflare/workers-types": "^4.20250501.0"
+  }
+}

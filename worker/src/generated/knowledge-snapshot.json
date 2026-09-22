@@ -1,0 +1,82 @@
+{
+  "documents": [
+    {
+      "id": "about",
+      "title": "Sobre mí",
+      "description": "Diseñador gráfico y desarrollador frontend de Barcelona con más de 15 años de experiencia.",
+      "content": "# Sobre mí\n\nMe llamo Albert Verdu. Soy diseñador gráfico y desarrollador frontend de Barcelona, con más de 15 años de experiencia entre el diseño y el código. Para mí, el design first es el núcleo de todo el desarrollo de UI/UX: la intención visual, la jerarquía y la forma guían la implementación, nunca al revés.\n\nVivo y trabajo desde Olivella, con actividad en Sitges (Barcelona).\n\nMi enfoque se reparte entre el diseño editorial y web, y las interfaces y herramientas digitales: piezas impresas, webs editoriales, aplicaciones y utilidades que dan servicio al día a día de estudios, imprentas y equipos pequeños. El objetivo es que cada pieza, en papel o en pantalla, tenga intención y esté lista para su producción."
+    },
+    {
+      "id": "alter",
+      "title": "Alter",
+      "description": "Secretario personal virtual: servicio modular en Go con planificador y almacén de eventos en SQLite.",
+      "content": "# Alter\n\n## Qué es\n\nUn secretario personal virtual, proyecto personal. Está concebido como un servicio modular en Go: el adaptador de agente conecta con un asistente, el planificador organiza las tareas, el almacén de eventos guarda los datos en SQLite y los disparadores lanzan acciones. La intención es reunir agenda, recordatorios y acciones en una sola pieza.\n\n## Tecnología\n\nGo 1.24+ y SQLite.\n\n## Estado\n\nEn desarrollo."
+    },
+    {
+      "id": "botanic",
+      "title": "Botanic",
+      "description": "Marketplace P2P de plantas: donde las plantas se encuentran con la gente.",
+      "content": "# Botanic\n\n## Qué es\n\nUn marketplace P2P de plantas, «donde las plantas se encuentran con la gente». El servicio conecta directamente a personas que ofrecen y buscan plantas, sin intermediarios. Es un proyecto propio con formato de startup y no es open-source.\n\nAdemás de la plataforma, existe un pipeline de publicación social separado (botanic-social) con estrategia, programación de publicaciones y un estudio Remotion para generar contenido para redes.\n\n## Tecnología\n\nSvelteKit y Bun para la plataforma; Remotion para el pipeline social.\n\n## Estado\n\n\n\n## Enlace\n\nhttps://botanicapp.es"
+    },
+    {
+      "id": "contact",
+      "title": "Contacto",
+      "description": "Canales públicos: portfolio, LinkedIn y GitHub.",
+      "content": "# Contacto\n\nEl portfolio público está en verdu.dev, este mismo sitio. Perfiles y plataformas:\n\n- LinkedIn: linkedin.com/in/albert-verdu\n- GitHub: github.com/verdulife\n\n\n\nLa base está en Sitges (Barcelona)."
+    },
+    {
+      "id": "experience",
+      "title": "Experiencia",
+      "description": "Más de 15 años entre el diseño gráfico y el frontend, con clientes y colaboraciones destacadas y productos propios.",
+      "content": "# Experiencia\n\n## Diseño gráfico y frontend\n\nMás de 15 años de experiencia como diseñador gráfico y desarrollador frontend, con base en Barcelona y actividad en Sitges. El design first guía el desarrollo de UI/UX.\n\n## Clientes y colaboraciones destacadas\n\n- **SGL Vilanova**: web para una empresa de estructuras e instalaciones eléctricas temporales para eventos, construida con Astro.\n- **Gaplogic**: web y ecosistema digital —web WordPress, POS gapcloud y reporte de tareas—, con una relación en curso.\n- **Kncelados**: web oficial del podcast, con episodios, colecciones y cortos; la primera versión se publicó bajo la organización del podcast y la segunda se reconstruyó bajo la cuenta propia.\n\n\n\n## Productos propios\n\n- **Botanic**: marketplace P2P de plantas.\n- **Facturas Gratis**: facturación online gratuita.\n- **Mando**: mando virtual de Xbox 360 para Windows.\n- **WePrintPDF**: imprimibles personalizables.\n- **GapCalc**: calculadora de precios de imprenta.\n- **Utilidades de imprenta**: Bleed (preflight) y Calendarify (preimpresión)."
+    },
+    {
+      "id": "facturasgratis",
+      "title": "Facturas Gratis",
+      "description": "Herramienta gratuita de facturación online: facturas, presupuestos, albaranes, clientes y productos.",
+      "content": "# Facturas Gratis\n\n## Qué es\n\nHerramientas gratuitas de facturación online: facturas, presupuestos, albaranes, clientes y productos. La primera versión se construyó sobre Sapper/Svelte con Express y pdfkit; la segunda fue una reescritura completa con SvelteKit, Firebase y jsPDF. El proyecto está publicado; la v2 supone una reescritura en desarrollo.\n\n## Tecnología\n\nSapper/Svelte, Express y pdfkit en la v1; SvelteKit, Firebase y jsPDF en la v2.\n\n## Estado\n\nLa v1 está publicada; la v2 está en desarrollo.\n\n## Enlace\n\nhttps://facturasgratis.vercel.app"
+    },
+    {
+      "id": "gapcalc",
+      "title": "GapCalc",
+      "description": "Calculadora de precios para servicios de imprenta con panel de administración protegido.",
+      "content": "# GapCalc\n\n## Qué es\n\nUna calculadora de precios para servicios de imprenta: papel, plotter y camisetas. Incluye un panel de administración protegido desde el que se gestionan los precios.\n\n## Tecnología\n\nAstro SSR con Svelte 5 y Tailwind 4, Drizzle con Turso/libsql, desplegado en Netlify y desarrollado con Bun."
+    },
+    {
+      "id": "gaplogic",
+      "title": "Gaplogic",
+      "description": "Web y ecosistema digital de Gaplogic: web WordPress, POS gapcloud y reporte de tareas.",
+      "content": "# Gaplogic\n\n## Qué es\n\nLa web y el ecosistema digital de Gaplogic. Incluye la web, construida con WordPress y Divi; el POS gapcloud —«un simple POS para los tiempos modernos»—, desarrollado con SvelteKit bajo la organización de GitHub de Gaplogic y todavía en construcción; y un reporte de tareas que se distribuye por email a partir de una plantilla en HTML, con un flujo de Notion a email.\n\n\n\n## Tecnología\n\nWordPress con Divi para la web y SvelteKit para el POS gapcloud.\n\n## Estado\n\nLa web está en producción; el POS está en desarrollo.\n\n## Enlace\n\nhttps://testing.gaplogic.com/"
+    },
+    {
+      "id": "kncelados",
+      "title": "Kncelados (podcast)",
+      "description": "Web oficial del podcast Kncelados, con episodios, colecciones y cortos.",
+      "content": "# Kncelados (podcast)\n\n## Qué es\n\nLa web oficial del podcast Kncelados: episodios, colecciones y cortos, con scrapers que alimentan el contenido y un código QR misterioso. La primera versión se desarrolló con Astro, se publicó en Vercel y vivía bajo la organización del podcast; la segunda se reconstruyó con Astro y Tailwind bajo la cuenta propia.\n\n## Tecnología\n\nAstro y Vercel en la v1; Astro con Tailwind en la v2; scrapers para episodios, colecciones y cortos.\n\n## Estado\n\nLa web está publicada; la v2 está en desarrollo o rediseño.\n\n\n\n## Enlace\n\nhttps://www.kncelados.com"
+    },
+    {
+      "id": "mando",
+      "title": "Mando",
+      "description": "Convierte iPhones y navegadores en mandos virtuales de Xbox 360 para Windows.",
+      "content": "# Mando\n\n## Qué es\n\nUna herramienta que convierte iPhones y otros navegadores en mandos virtuales de Xbox 360 para Windows. El móvil actúa como mando, ViGEmBus emula el controlador para que el sistema lo reconozca y la app funciona como PWA instalable. El descubrimiento en la red local se resuelve con mDNS.\n\n## Tecnología\n\nViGEmBus, Bun, PWA y mDNS.\n\n## Estado\n\nPublicado, con releases disponibles.\n\n## Enlace\n\nReleases en https://github.com/verdulife/mando"
+    },
+    {
+      "id": "services",
+      "title": "Servicios",
+      "description": "Diseño y desarrollo web, diseño gráfico y de imprenta, UI/UX con enfoque design-first y automatización.",
+      "content": "# Servicios\n\n## Diseño y desarrollo web\n\nWebs editoriales y aplicaciones construidas con Astro o SvelteKit, y mantenimiento de proyectos existentes sobre WordPress con Divi.\n\n## Diseño gráfico y de imprenta\n\nIdentidad, piezas impresas, preflight y utilidades de imprenta que preparan los ficheros para producción.\n\n## UI/UX con enfoque design-first\n\nInterfaces pensadas primero desde el diseño —jerarquía, tipografía y ritmo visual— y desarrolladas después con atención al detalle.\n\n## Automatización y asistentes\n\nHerramientas y agentes propios: integraciones con MCP, agentes multi-sistema como art-director, que genera pósters listos para imprenta, y asistentes tipo bridge. Son proyectos internos y se ofrecen como capacidad puntual.\n\n## Para quién\n\nAutónomos, estudios de diseño, imprentas y organización de eventos."
+    },
+    {
+      "id": "skills",
+      "title": "Habilidades",
+      "description": "Tecnologías principales y áreas de diseño, del día a día y de proyectos puntuales.",
+      "content": "# Habilidades\n\nLas habilidades se agrupan en dos bloques: las tecnologías con las que trabajo y las áreas de diseño que cubro.\n\n## Tecnologías\n\nEl stack principal es Astro, SvelteKit, TailwindCSS, TypeScript, Bun y Node; la combinación más habitual es Astro o SvelteKit con TailwindCSS y TypeScript. Además, en proyectos concretos han aparecido GSAP, Playwright, WordPress con Divi, Angular con Firebase, PDFlib.js y Remotion.\n\n## Áreas de diseño\n\nDiseño gráfico, identidad, UI/UX, diseño editorial y de imprenta, preflight y herramientas de preimpresión. Son áreas que se solapan: el preflight, por ejemplo, une el diseño de imprenta con las herramientas digitales.\n\nLa lista está en evolución: unas tecnologías forman parte del día a día y otras aparecen en proyectos puntuales; no se indican niveles de dominio."
+    },
+    {
+      "id": "weprintpdf",
+      "title": "WePrintPDF",
+      "description": "Diseños imprimibles personalizables: calendarios, agendas, listas y otros.",
+      "content": "# WePrintPDF\n\n## Qué es\n\nDiseños imprimibles personalizables: calendarios, agendas, listas, calendarios perpetuos y otros imprimibles. La web funciona como landing para presentar los diseños y permite subir imágenes para personalizarlos. El nombre interno del proyecto es papira.\n\n## Tecnología\n\nSvelteKit.\n\n## Estado\n\nPublicado."
+    }
+  ]
+}
