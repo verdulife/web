@@ -55,15 +55,15 @@ The full project brief (sections 1–21) is the contract. Condensed invariants:
 | # | Task | Status | Route | ~lines | TDD/checks | Outcome |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | repo-init: git, .gitignore, README (pending delegation), tracking | in_progress (restart) | inline + delegated write | 40 | — |  |
-| 2 | knowledge-content: draft `knowledge/*.md` (Spanish) | in_progress | delegated explore → delegated writer | 400 | review |  |
+| 2 | knowledge-content: draft `knowledge/*.md` (Spanish) | done | delegated explore → delegated writer | 400 | review | drafts: 14 files, 314 lines, 9 DUDA flags for 1-by-1 review |
 | 3 | frontend-scaffold: package.json, astro/tailwind config, fonts, layouts, design tokens | done | delegated writer | 400 | astro check + build | pass |
-| 4 | pages-static: content collections + about/skills/services/experience/projects/contact/detail | pending | delegated writer | 400 | astro check + build |  |
-| 5 | home-editorial: editorial homepage + masthead + AI intro | pending | delegated writer | 350 | astro check + build |  |
-| 6 | conversation-ui: integrated conversation component (not chatbot box) | pending | delegated writer | 400 | astro check + build |  |
-| 7 | worker-knowledge: scaffold, limits, KnowledgeProvider + snapshot script, prompts, tests | pending | delegated writer | 450 | vitest + tsc |  |
-| 8 | worker-chat: AI client, tool loop, router, error handling, rate limiting, tests | pending | delegated writer | 450 | vitest + tsc + wrangler dev |  |
-| 9 | verify-e2e: full vertical path local verification + graceful-degradation check | pending | delegated verify | 100 | all |  |
-| 10 | close: README/runbook, memory, final report | pending | inline | 100 | — |  |
+| 4 | pages-static: content collections + about/skills/services/experience/projects/contact/detail | done | delegated writer | 400 | astro check + build | pass (16 pages) |
+| 5 | home-editorial: editorial homepage + masthead + AI intro | done | delegated writer | 350 | astro check + build | pass |
+| 6 | conversation-ui: integrated conversation component (not chatbot box) | done | delegated writer | 400 | astro check + build | pass; build-pipeline defect found+worked around (see Environment defect) |
+| 7 | worker-knowledge: scaffold, limits, KnowledgeProvider + snapshot script, prompts, tests | done | delegated writer | 450 | vitest + tsc | pass (34 tests) |
+| 8 | worker-chat: AI client, tool loop, router, error handling, rate limiting, tests | done | delegated writer | 450 | vitest + tsc | pass (60→64 tests, CORS fix) |
+| 9 | verify-e2e: full vertical path local verification + graceful-degradation check | done | delegated verify | 100 | all | PASS-WITH-NOTES (build/tests/degradation pass; wrangler dev remote needs auth ⇒ dev:local + graceful 502) |
+| 10 | close: README/runbook, memory, final report | in_progress | inline + delegated write | 100 | — |  |
 
 ## Work-unit commit ledger
 
@@ -72,6 +72,14 @@ The full project brief (sections 1–21) is the contract. Condensed invariants:
 | 49a97e3 feat(scaffold) | 3 | unassessable (native CLI assess empty output) | high-risk plan: independent verifier PASS (gentle-ai-verify; 4 commands pass; clean additive 12-file diff). Native START blocked pre-lineage: provider requires `base_ref` collect (external.select_base_ref) that this pi facade (gentle-pi 1.2.0) does not implement; untracked selection excluded; content-mapping committed to get a clean tree; STATUS still offers collect empty_candidate_base_ref_required. Recorded: native review unavailable in this environment for committed ranges; re-test after version alignment. |
 | ad9dba4 docs(content-mapping) | 2 prep | — | research artifact; assessed at task-2 boundary |
 | (next) knowledge base | 2 | pending assess | to record after commit |
+| 98f3d0a feat(home) | 5 | native unavailable (pre-lineage base_ref collect, facade gap) | writer validation pass (check+build 0 errors) |
+| d85843d feat(chat-ui) | 6 | native unavailable | build defect found (Astro script pipeline) + fixed with static-script pattern; writer validation pass |
+| 3b18e40 feat(worker knowledge) | 7 | native unavailable | writer validation pass (34 tests, tsc, root build) |
+| bd2d64a feat(worker chat) | 8 | native unavailable | writer validation pass (60 tests, root check/build) |
+| 447a626 fix(worker CORS) | 8 | native unavailable | writer validation pass (64 tests) |
+| (task-9 boundary) | 9 | independent verifier (gentle-ai-verify) | **PASS-WITH-NOTES**: steps 1/2/4 pass; step 3 (wrangler dev HTTP smoke) blocked by missing Cloudflare auth (remote-mode AI binding) — mitigation: `dev:local` script + documented graceful 502; all trees clean |
+
+RDD disposition: native review is **unavailable in this environment** (assess → unassessable, empty CLI output; START blocked at provider `base_ref` collect unsupported by gentle-pi 1.2.0 facade). Every work-unit commit therefore went through writer self-validation (astro check/build + worker tsc + vitest), plus one consolidated independent verification at the task-9 boundary (PASS-WITH-NOTES). Re-run `gentle_review` lifecycle after gentle-pi/CLI version alignment or in a session with Cloudflare auth. Delivery under ordinary policy: user decides push/PR.
 | 98f3d0a feat(home) | 5 | not assessed (run 3 blocked pre-lineage) | editorial homepage complete; native review still unavailable (see 49a97e3 row) — independent verify per commit not re-run (build/check green in writer validation); noted |
 | (next) feat(chat-ui) | 6 | pending assess | conversation component; build defect DURING task recorded below; re-run assess at next boundary |
 

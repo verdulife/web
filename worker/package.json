@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev --port 8787",
+    "dev:local": "wrangler dev --port 8787 --local",
     "check": "tsc --noEmit",
     "test": "vitest run",
     "gen:knowledge": "bun scripts/generate-knowledge-snapshot.js",
