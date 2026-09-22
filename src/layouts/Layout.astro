@@ -9,9 +9,15 @@ interface Props {
   title: string;
   description?: string;
   ogImage?: string;
+  shell?: "chat";
 }
 
-const { title, description = SITE.description, ogImage } = Astro.props;
+const {
+  title,
+  description = SITE.description,
+  ogImage,
+  shell,
+} = Astro.props;
 
 const siteUrl = Astro.site ?? new URL(SITE.url);
 const pageTitle = title.includes(SITE.name) ? title : `${title} — ${SITE.name}`;
@@ -46,7 +52,12 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
     {ogImageUrl && <meta name="twitter:image" content={ogImageUrl} />}
   </head>
 
-  <body class="min-h-screen bg-paper text-ink">
+  <body
+    class:list={[
+      "min-h-screen bg-paper text-ink",
+      shell === "chat" && "app-shell",
+    ]}
+  >
     <a
       href="#main"
       class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:bg-ink focus:px-3 focus:py-2 focus:font-mono focus:text-xs focus:text-paper"
@@ -54,7 +65,12 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
       Saltar al contenido
     </a>
 
-    <header class="sticky top-0 z-30 border-b border-line bg-paper">
+    <header
+      class:list={[
+        "z-30 border-b border-line bg-paper",
+        shell === "chat" ? "relative" : "sticky top-0",
+      ]}
+    >
       <div class="flex items-center justify-between px-5 py-4">
         <a href="/" class="no-underline">
           <span class="font-serif text-3xl font-medium tracking-tight text-ink">V.</span>
@@ -140,7 +156,14 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
       </script>
     </header>
 
-    <main id="main" class="mx-auto w-full max-w-5xl px-6">
+    <main
+      id="main"
+      tabindex="-1"
+      class:list={[
+        "w-full",
+        shell === "chat" ? "min-h-0 overflow-hidden" : "mx-auto max-w-5xl px-6",
+      ]}
+    >
       <slot />
     </main>
 

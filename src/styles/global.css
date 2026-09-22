@@ -31,6 +31,21 @@
     text-rendering: optimizeLegibility;
   }
 
+  /* Fixed app shell (chat home): body becomes a three-row grid
+     (header · chat · composer) locked at viewport height, with the
+     chat column the only scroll container. */
+  body.app-shell {
+    height: 100dvh;
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  body.app-shell main {
+    min-height: 0;
+    max-width: none;
+  }
+
   ::selection {
     background-color: var(--color-accent);
     color: var(--color-paper);
@@ -280,7 +295,8 @@
   .chat-screen {
     display: flex;
     flex-direction: column;
-    height: 100svh;
+    height: 100%;
+    min-height: 0;
   }
 
   .ask-thread {
@@ -333,9 +349,6 @@
   }
 
   .ask-composer {
-    position: sticky;
-    bottom: 0;
-    z-index: 10;
     background: var(--color-paper);
     border-top: 1px solid var(--color-line);
     padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom));
