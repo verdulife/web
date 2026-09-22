@@ -72,6 +72,12 @@ The full project brief (sections 1–21) is the contract. Condensed invariants:
 | 49a97e3 feat(scaffold) | 3 | unassessable (native CLI assess empty output) | high-risk plan: independent verifier PASS (gentle-ai-verify; 4 commands pass; clean additive 12-file diff). Native START blocked pre-lineage: provider requires `base_ref` collect (external.select_base_ref) that this pi facade (gentle-pi 1.2.0) does not implement; untracked selection excluded; content-mapping committed to get a clean tree; STATUS still offers collect empty_candidate_base_ref_required. Recorded: native review unavailable in this environment for committed ranges; re-test after version alignment. |
 | ad9dba4 docs(content-mapping) | 2 prep | — | research artifact; assessed at task-2 boundary |
 | (next) knowledge base | 2 | pending assess | to record after commit |
+| 98f3d0a feat(home) | 5 | not assessed (run 3 blocked pre-lineage) | editorial homepage complete; native review still unavailable (see 49a97e3 row) — independent verify per commit not re-run (build/check green in writer validation); noted |
+| (next) feat(chat-ui) | 6 | pending assess | conversation component; build defect DURING task recorded below; re-run assess at next boundary |
+
+## Environment defect (reproducible, recorded 2026-09-22)
+
+Astro script/style bundling is BROKEN in this environment: astro 5.18.2 + @astrojs/compiler 2.13.1 emits `<script type="module">` tags verbatim into built HTML (unresolved imports, no JS chunks), and component `<style>` blocks are tree-shaken (Vite cssScopeTo). Reproduced by the writer in a fresh minimal project. Workaround adopted for ALL client JS in this repo: self-contained ES module in `public/scripts/` (zero imports), loaded via `<script type="module" src="/...">` with `is:inline`, hooks via element attributes and a `window.__PORTFOLIO_WORKER_URL` global; all decorative CSS lives in `src/styles/global.css` `@layer components`. Do NOT add Astro script/style tags to components without this pattern. (Re-test after an astro/compiler upgrade.)
 
 (RDD: assess each work-unit commit via `gentle_review assess`; medium → defer to slice; boundary tracking per ODD.)
 

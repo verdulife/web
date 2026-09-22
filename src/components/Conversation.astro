@@ -1,0 +1,75 @@
+---
+import { SITE } from "../lib/site";
+
+const workerUrl = SITE.workerUrl;
+
+const suggestions = [
+  { label: "Sobre mí", question: "¿Quién eres y a qué te dedicas?" },
+  { label: "Proyectos", question: "¿Qué proyectos has desarrollado?" },
+  { label: "Habilidades", question: "¿Qué habilidades tienes?" },
+  { label: "Servicios", question: "¿Qué servicios ofreces?" },
+  { label: "Contacto", question: "¿Cómo puedo contactar contigo?" },
+];
+---
+
+<div data-worker-url={workerUrl}>
+  <p class="kicker">PREGUNTA</p>
+
+  <h2
+    id="conversation-heading"
+    class="mt-6 max-w-3xl font-serif text-4xl font-medium leading-[1.08] tracking-tight sm:text-5xl"
+  >
+    Hola. ¿Qué quieres saber de mí?
+  </h2>
+
+  <p class="lede mt-6 max-w-2xl">
+    Pregúntame por mi trabajo, mis proyectos o mis servicios como si fuera el artículo que falta
+    en esta edición.
+  </p>
+
+  <form class="ask-form" aria-labelledby="conversation-heading">
+    <label for="ask-input" class="mono-meta block uppercase tracking-[0.18em]">Tu pregunta</label>
+
+    <div class="mt-2 flex items-end gap-4">
+      <input id="ask-input" class="ask-input w-full min-w-0" type="text" autocomplete="off" />
+      <button type="submit" class="ask-button">Publicar</button>
+    </div>
+  </form>
+
+  <div class="ask-suggestions">
+    {
+      suggestions.map((suggestion) => (
+        <button type="button" class="ask-suggestion" data-question={suggestion.question}>
+          {suggestion.label}
+        </button>
+      ))
+    }
+  </div>
+
+  <div
+    class="ask-thread"
+    role="log"
+    aria-live="polite"
+    aria-label="Hilo de la conversación"
+    tabindex="-1"
+  ></div>
+
+  <div class="ask-thinking" role="status" hidden>
+    <span class="ask-thinking-text">Redactando artículo</span>
+  </div>
+
+  <div class="ask-error" role="status" hidden></div>
+</div>
+
+<!--
+  Script-text interpolation is unavailable in this build (Astro emits this
+  inline script verbatim), so the worker URL is interpolated on the attribute
+  above and promoted to a global here, before the module loads.
+-->
+<script is:inline>
+  var workerEl = document.querySelector("#conversacion [data-worker-url]");
+  window.__PORTFOLIO_WORKER_URL =
+    (workerEl && workerEl.dataset.workerUrl) || "http://localhost:8787";
+</script>
+
+<script is:inline type="module" src="/scripts/conversation.js"></script>

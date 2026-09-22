@@ -271,4 +271,214 @@
     letter-spacing: 0.12em;
     color: var(--color-ink-muted);
   }
+
+  /* -------------------------------------------------------------------------
+     Editorial conversation (“ask” thread). Plain classes, tokens only:
+     the client (public/scripts/conversation.js) builds turns with these class
+     names, so they deliberately avoid any Tailwind dependency.
+     ------------------------------------------------------------------------- */
+  .ask-form {
+    max-width: 65ch;
+    margin-top: 2rem;
+  }
+
+  .ask-input {
+    width: 100%;
+    min-width: 0;
+    padding: 0.5rem 0;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--color-ink);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .ask-input:focus {
+    outline: none;
+    border-bottom-color: var(--color-accent);
+  }
+
+  .ask-button {
+    flex-shrink: 0;
+    padding: 0.4rem 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--color-ink);
+    background: transparent;
+    border: 1px solid var(--color-ink);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .ask-button:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .ask-button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  .ask-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 1.25rem;
+    row-gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .ask-suggestion {
+    padding: 0 0 0.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--color-ink-muted);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-line);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .ask-suggestion:hover,
+  .ask-suggestion:focus-visible {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .ask-thread {
+    margin-top: 2rem;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .ask-thread:focus {
+    outline: none;
+  }
+
+  .ask-user,
+  .ask-assistant {
+    border-top: 1px solid var(--color-line);
+    padding: 1.25rem 0 1.5rem;
+  }
+
+  .ask-question {
+    margin-top: 0.5rem;
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    font-weight: 500;
+    line-height: 1.375;
+    color: var(--color-ink);
+  }
+
+  .ask-dash {
+    color: var(--color-accent);
+  }
+
+  .ask-paragraph {
+    margin-block: 1.1rem;
+    max-width: 42rem;
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--color-ink);
+  }
+
+  .ask-assistant > :first-child {
+    margin-top: 0;
+  }
+
+  .ask-assistant .ask-fuentes {
+    margin-top: 1rem;
+  }
+
+  .ask-thinking {
+    margin-top: 2rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--color-ink-muted);
+  }
+
+  .ask-thinking-dots {
+    margin-left: 0.25rem;
+  }
+
+  .thinking-dot {
+    display: inline-block;
+    width: 4px;
+    height: 4px;
+    margin-right: 2px;
+    vertical-align: baseline;
+    background-color: var(--color-ink-muted);
+    animation: ask-blink 1.2s steps(2, start) infinite;
+  }
+
+  .thinking-dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .thinking-dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  @keyframes ask-blink {
+    0%,
+    60%,
+    100% {
+      opacity: 0.2;
+    }
+
+    30% {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .thinking-dot {
+      animation: none;
+      opacity: 1;
+    }
+  }
+
+  .ask-error {
+    margin-top: 2rem;
+  }
+
+  .ask-error .kicker {
+    color: var(--color-accent);
+  }
+
+  .ask-error-message {
+    margin-top: 0.75rem;
+    max-width: 42rem;
+    font-family: var(--font-serif);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    color: var(--color-ink);
+  }
+
+  .ask-retry {
+    margin-top: 0.75rem;
+    padding: 0 0 0.2rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--color-ink-muted);
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-line);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .ask-retry:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+  }
 }

@@ -1,6 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import Layout from "../layouts/Layout.astro";
+import Conversation from "../components/Conversation.astro";
 import { SITE } from "../lib/site";
 
 const knowledge = await getCollection("knowledge");
@@ -34,14 +35,6 @@ const sections = SITE.nav
     number: String(index + 1).padStart(2, "0"),
     description: sectionDescriptions[item.href] ?? "",
   }));
-
-const conversationSuggestions = [
-  { label: "Sobre mí", href: "/sobre-mi" },
-  { label: "Proyectos", href: "/proyectos" },
-  { label: "Skills", href: "/habilidades" },
-  { label: "Servicios", href: "/servicios" },
-  { label: "Contacto", href: "/contacto" },
-];
 
 // Summaries of the knowledge/services.md sections, kept as plain text.
 const services = [
@@ -128,34 +121,10 @@ const todayIso = new Date().toISOString().slice(0, 10);
       </ol>
     </section>
 
-    {/* 3 — Conversation intro zone (placeholder for task 6) */}
+    {/* 3 — Conversation: editorial thread (task 6) */}
     <!-- conversation-ui: task 6 replaces this placeholder block (keep this marker unchanged) -->
     <section id="conversacion" class="mt-16 border-t border-line pt-10 sm:mt-20">
-      <p class="kicker">PREGUNTA</p>
-
-      <h2 class="mt-6 max-w-3xl font-serif text-4xl font-medium leading-[1.08] tracking-tight sm:text-5xl">
-        Hola. ¿Qué quieres saber de mí?
-      </h2>
-
-      <p class="lede mt-6 max-w-2xl">
-        Pregúntame por mi trabajo, mis proyectos o mis servicios como si fuera el artículo que
-        falta en esta edición.
-      </p>
-
-      <ul class="mt-8 flex flex-wrap gap-x-3 gap-y-2">
-        {
-          conversationSuggestions.map((suggestion) => (
-            <li>
-              <a
-                href={suggestion.href}
-                class="mono-meta inline-block border border-line px-3 py-1 no-underline transition-colors hover:border-accent hover:text-accent"
-              >
-                {suggestion.label}
-              </a>
-            </li>
-          ))
-        }
-      </ul>
+      <Conversation />
     </section>
 
     {/* 4 — Featured projects */}

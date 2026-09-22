@@ -4,6 +4,7 @@ export const SITE = {
   description:
     "Portfolio personal y profesional de Verdu, con un asistente de IA que responde sobre su trabajo.",
   url: "https://verdu.dev",
+  workerUrl: import.meta.env.PUBLIC_WORKER_URL ?? "http://localhost:8787",
   nav: [
     { label: "Inicio", href: "/" },
     { label: "Sobre mí", href: "/sobre-mi" },
