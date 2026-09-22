@@ -55,8 +55,8 @@ The full project brief (sections 1–21) is the contract. Condensed invariants:
 | # | Task | Status | Route | ~lines | TDD/checks | Outcome |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | repo-init: git, .gitignore, README (pending delegation), tracking | in_progress (restart) | inline + delegated write | 40 | — |  |
-| 2 | knowledge-content: draft `knowledge/*.md` (Spanish) | pending | delegated explore → inline write | 400 | review |  |
-| 3 | frontend-scaffold: package.json, astro/tailwind config, fonts, layouts, design tokens | pending | delegated writer | 400 | astro check + build |  |
+| 2 | knowledge-content: draft `knowledge/*.md` (Spanish) | in_progress | delegated explore → delegated writer | 400 | review |  |
+| 3 | frontend-scaffold: package.json, astro/tailwind config, fonts, layouts, design tokens | done | delegated writer | 400 | astro check + build | pass |
 | 4 | pages-static: content collections + about/skills/services/experience/projects/contact/detail | pending | delegated writer | 400 | astro check + build |  |
 | 5 | home-editorial: editorial homepage + masthead + AI intro | pending | delegated writer | 350 | astro check + build |  |
 | 6 | conversation-ui: integrated conversation component (not chatbot box) | pending | delegated writer | 400 | astro check + build |  |
@@ -67,7 +67,10 @@ The full project brief (sections 1–21) is the contract. Condensed invariants:
 
 ## Work-unit commit ledger
 
-| Commit | Task | Identity | Tier (RDD) | Outcome |
-| --- | --- | --- | --- | --- |
+| Commit | Task | Tier (RDD) | Outcome |
+| --- | --- | --- | --- |
+| 49a97e3 feat(scaffold) | 3 | unassessable (native CLI assess empty output) | high-risk plan: independent verifier PASS (gentle-ai-verify; 4 commands pass; clean additive 12-file diff). Native START blocked pre-lineage: provider requires `base_ref` collect (external.select_base_ref) that this pi facade (gentle-pi 1.2.0) does not implement; untracked selection excluded; content-mapping committed to get a clean tree; STATUS still offers collect empty_candidate_base_ref_required. Recorded: native review unavailable in this environment for committed ranges; re-test after version alignment. |
+| ad9dba4 docs(content-mapping) | 2 prep | — | research artifact; assessed at task-2 boundary |
+| (next) knowledge base | 2 | pending assess | to record after commit |
 
 (RDD: assess each work-unit commit via `gentle_review assess`; medium → defer to slice; boundary tracking per ODD.)
