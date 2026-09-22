@@ -1,0 +1,25 @@
+{
+  "name": "verdu",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "check": "astro check",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.0",
+    "@astrojs/sitemap": "^3.0.0",
+    "@fontsource-variable/newsreader": "^5.0.0",
+    "@fontsource/ibm-plex-mono": "^5.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "astro": "^5.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.8.0"
+  }
+}
