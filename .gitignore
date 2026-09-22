@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# astro
+.astro/
+dist/
+.output/
+
+# environment
+.env
+.env.*
+!.env.example
+.envvars
+
+# wrangler / cloudflare
+.wrangler/
+worker/tmp/
+
+# logs & misc
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+# Local Pi runtime state
+.atl/
