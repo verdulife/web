@@ -106,7 +106,7 @@ Tasks:
 | [x] I1 | Worker: `image` type in allowlist + `isSiteImagePath` validation (`src`, `alt`, `caption`) | widget unit tests (valid/invalid/escaping/absolute URL rejected) |
 | [x] I2 | Worker: prompt documents the image token and when to use it | prompt readback + live smoke |
 | I3 | Knowledge: `about.md` mentions the available portrait asset; regenerate snapshot | `worker:gen` + diff |
-| I4 | Client: `image` renderer (figure span + img + optional caption) | engine harness + `astro check` |
+| [x] I4 | Client: `image` renderer (figure span + img + optional caption) | engine harness + `astro check` |
 | I5 | CSS: `.widget-image` figure styles | visual review |
 | I6 | Verification: worker suite + live smoke (ask about the profile) | all prior checks |
 
@@ -114,6 +114,7 @@ Image widget progress (verified):
 
 - [x] I1 — done: `image` in allowlist + `isSiteImagePath` validation — `cd worker && bun run check` → exit 0 (`tsc --noEmit`, no type errors); `cd worker && bun run test` → 7 files / 158 tests pass (138 prior + 20 new, all in `tests/widgets.test.ts`, 25 → 45).
 - [x] I2 — done: prompt documents the image token — prompt readback confirms the `[[widget:image src="/verdu.jpg" alt="descripción" caption="Opcional"]]` bullet in WIDGET_NOTE with the site-relative-only rule, mandatory `alt`, and when to use it (portrait asset).
+- [x] I4 — done: client `image` renderer — `renderImage` registered at module scope (`window.PortfolioWidgets.register("image", renderImage)`) next to the link renderer. Builds `<span class="widget-image">` → `<img class="widget-image-img" loading="lazy" decoding="async">` + optional `<span class="widget-image-caption">` (textContent only); wrapper is a phrasing-level span (valid inside `.ask-paragraph` `<p>`), CSS figure styling deferred to I5. Client-side re-validation mirrors worker `isSiteImagePath`: src must be non-empty, exactly one leading `/` (never `//`), chars `[A-Za-z0-9._~/-]`, no `..` segment; alt must be non-empty after trim; alt/caption truncated defensively to 200. Invalid input → `null` (placeholder dropped). Evidence: `node --check public/scripts/conversation.js` → OK; `bun run check` (root) → exit 0, 0 errors/0 warnings/0 hints (18 files); greps: 1× `register("image"`, `innerHTML` only in the pre-existing security comment; DOM-stub harness → 34/34 checks pass (valid widget structure/attrs, caption only when non-empty, invalid src {absolute URL, `//`, `..`, spaces, empty, no leading slash} → null, blank/missing alt → null, alt/caption 200-cap, sync element return).
 
 ## Progress
 

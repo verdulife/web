@@ -487,6 +487,70 @@
 
   window.PortfolioWidgets.register("link", renderLink);
 
+  /** Client-side cap for image `alt`/`caption` text (worker caps at 200 first). */
+  var MAX_WIDGET_IMAGE_TEXT_CHARS = 200;
+
+  /** Character allowlist for site-relative image paths (defense in depth). */
+  var SITE_IMAGE_SRC_RE = /^[A-Za-z0-9._~/-]+$/;
+
+  /**
+   * True when `raw` is a safe site-relative image path: non-empty, starts with
+   * exactly one `/` (never `//`), characters limited to `[A-Za-z0-9._~/-]` (no
+   * spaces, no URL-encoded values), and no `..` path segment. Mirrors the
+   * worker's `isSiteImagePath` re-asserted client-side for defense in depth.
+   */
+  function isSafeSiteImagePath(raw) {
+    if (typeof raw !== "string" || raw === "") return false;
+    if (raw.charAt(0) !== "/" || raw.charAt(1) === "/") return false;
+    if (!SITE_IMAGE_SRC_RE.test(raw)) return false;
+    return raw.split("/").indexOf("..") === -1;
+  }
+
+  /**
+   * I4 — image widget renderer.
+   *
+   * Renders an image widget as `<span class="widget-image">` holding an
+   * `<img class="widget-image-img">` and an optional
+   * `<span class="widget-image-caption">`. The wrapper is a span (phrasing
+   * content, valid inside the `.ask-paragraph` `<p>`) styled as a block figure
+   * by CSS (I5); `figure`/`figcaption` are not allowed inside `<p>`. `src`
+   * must be a safe site-relative path and `alt` a non-empty string — anything
+   * invalid drops the placeholder (returns null). `caption`, when present and
+   * non-empty, is set via textContent only. Nodes are built with
+   * createElement/textContent only; no metadata fetch is needed.
+   */
+  function renderImage(widget, _ctx) {
+    if (typeof widget !== "object" || widget === null) return null;
+    if (!isSafeSiteImagePath(widget.src)) return null;
+
+    var alt = typeof widget.alt === "string" ? widget.alt.trim() : "";
+    if (alt === "") return null;
+    alt = alt.slice(0, MAX_WIDGET_IMAGE_TEXT_CHARS);
+
+    var figure = document.createElement("span");
+    figure.className = "widget-image";
+
+    var img = document.createElement("img");
+    img.className = "widget-image-img";
+    img.src = widget.src;
+    img.alt = alt;
+    img.loading = "lazy";
+    img.decoding = "async";
+    figure.appendChild(img);
+
+    var caption = typeof widget.caption === "string" ? widget.caption.trim() : "";
+    if (caption !== "") {
+      var captionNode = document.createElement("span");
+      captionNode.className = "widget-image-caption";
+      captionNode.textContent = caption.slice(0, MAX_WIDGET_IMAGE_TEXT_CHARS);
+      figure.appendChild(captionNode);
+    }
+
+    return figure;
+  }
+
+  window.PortfolioWidgets.register("image", renderImage);
+
   /**
    * Types one text segment into an already-attached Text node (nodeValue
    * only), mirroring streamText's 8ms/16ms stepping and the instant
