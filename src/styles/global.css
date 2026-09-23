@@ -546,7 +546,7 @@
 
   .ask-assistant .ask-paragraph--first {
     border-top: 0;
-    padding-top: 2rem; /* 8 del sistema de espaciado (8 = 2rem) */
+    padding-top: 8rem;
   }
 
   .ask-assistant > :first-child {
