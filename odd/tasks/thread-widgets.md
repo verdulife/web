@@ -183,7 +183,7 @@ Tasks:
 | [x] P4 | Client: block engine (register options.block, paragraph closing) + image→block | DOM harness + astro check |
 | [x] P5 | Client: renderProject card renderer (fetch /api/project, cached) | harness + astro check |
 | P6 | CSS: .widget-card (100% mobile / max-width desktop, Telegram style) | visual review |
-| P7 | Prompt + verification: project usage note; full suite + E2E | all prior checks + smoke |
+| [x] P7 | Prompt + verification: project usage note; full suite + E2E | all prior checks + smoke + mock route (0d6dc1b) |
 
 Project widget progress (verified):
 
