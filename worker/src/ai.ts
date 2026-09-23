@@ -208,6 +208,7 @@ function getLastUserContent(messages: AiRequest["messages"]): string {
 
 /** Lowercase substrings that route a request to the profile (image) reply. */
 const PROFILE_KEYWORDS = ["profile", "foto", "retrato", "quién es", "quien es", "eres", "aspecto"];
+const PROJECT_KEYWORDS = ["proyecto", "proyectos", "trabajos", "portfolio", "porfolio"];
 
 /** Lowercase substrings that route a request to the contact (link) reply. */
 const CONTACT_KEYWORDS = ["contacto", "contactar", "linkedin", "github", "redes", "email", "correo"];
@@ -234,6 +235,13 @@ export function mockReplyFor(lastUserText: string): string {
       '[[widget:link url="https://www.linkedin.com/in/albert-verdu" label="LinkedIn"]] ' +
       "o ver mi código en " +
       '[[widget:link url="https://github.com/verdulife" label="GitHub"]].'
+    );
+  }
+  if (PROJECT_KEYWORDS.some((keyword) => text.includes(keyword))) {
+    return (
+      "Te enseño dos de mis proyectos:" +
+      "\n\n[[widget:project slug=\"kncelados\"]]" +
+      "\n\n[[widget:project slug=\"botanic\"]]"
     );
   }
   return (

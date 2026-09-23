@@ -62,14 +62,24 @@ describe("mockReplyFor (pure keyword router)", () => {
     expect(reply).toContain('url="https://github.com/verdulife"');
   });
 
+  it("routes proyecto/trabajos questions to the project card widgets", () => {
+    const reply = mockReplyFor("muéstrame tus proyectos");
+    expect(reply.match(/\[\[widget:project/g)).toHaveLength(2);
+    expect(reply).toContain('slug="kncelados"');
+    expect(reply).toContain('slug="botanic"');
+    const normalized = normalizeWidgets(reply);
+    expect(normalized.widgets.map((widget) => widget.type)).toEqual(["project", "project"]);
+    expect(normalized.reply).not.toContain("[[widget:project");
+  });
+
   it("falls back to a default reply with a bare URL for any other question", () => {
-    const reply = mockReplyFor("cuéntame un proyecto");
+    const reply = mockReplyFor("¿qué stack usas?");
     expect(reply).toContain("https://");
     expect(reply).toContain("[[widget:link");
   });
 
   it("default reply auto-converts its bare URL into a link widget (normalization demo)", () => {
-    const normalized = normalizeWidgets(mockReplyFor("cuéntame un proyecto"));
+    const normalized = normalizeWidgets(mockReplyFor("¿qué stack usas?"));
     expect(normalized.widgets).toHaveLength(2);
     expect(normalized.widgets.map((widget) => widget.type)).toEqual(["link", "link"]);
     expect(normalized.widgets[1]?.url).toBe("https://astro.build");
