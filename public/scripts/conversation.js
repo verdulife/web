@@ -1022,9 +1022,13 @@
   /**
    * projects scroller widget renderer (block layout).
    *
-   * Renders the ALL-projects horizontal scroller: a region span holding a
-   * flex track of one card per project. Each card is an anchor to the site's
-   * static detail route `/proyectos/<slug>/` (normal navigation — no
+   * Renders the ALL-projects horizontal scroller as a single block-level
+   * `span.projects-widget` wrapper holding two siblings: the scroller
+   * region span (overflow-x auto, flex track of one card per project) and
+   * the desktop-only nav row (`span.projects-nav`, ‹/› buttons wired to
+   * scrollProjects) OUTSIDE the overflow container, so the buttons never
+   * scroll away with the cards. Each card is an anchor to the site's static
+   * detail route `/proyectos/<slug>/` (normal navigation — no
    * preventDefault). The card head carries an optional Google-s2 favicon for
    * the project url (hostname via hostnameFromUrl; a url that does not parse
    * to a hostname omits the icon) followed by the serif title, then the
@@ -1101,6 +1105,13 @@
 
       scroller.append(track);
 
+      // The nav row is a SIBLING of the scroller inside the block wrapper,
+      // never a child of the overflow-x container: appending it to the
+      // scroller would make the buttons move with the cards.
+      var wrapper = document.createElement("span");
+      wrapper.className = "projects-widget";
+      wrapper.append(scroller);
+
       var nav = document.createElement("span");
       nav.className = "projects-nav";
       var prev = document.createElement("button");
@@ -1114,7 +1125,7 @@
       next.setAttribute("aria-label", "Siguientes proyectos");
       next.textContent = "›";
       nav.append(prev, next);
-      scroller.append(nav);
+      wrapper.append(nav);
 
       prev.addEventListener("click", function () {
         scrollProjects(scroller, -1);
@@ -1122,7 +1133,7 @@
       next.addEventListener("click", function () {
         scrollProjects(scroller, 1);
       });
-      return scroller;
+      return wrapper;
     } catch (error) {
       return null;
     }

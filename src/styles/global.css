@@ -791,6 +791,14 @@
      Todas las tarjetas de proyecto en un carrusel con snap, scrollbar
      oculto y máscara de difuminado en los bordes (peek sin corte duro);
      misma estética que las tarjetas de /proyectos (favicon + título). */
+
+  /* Wrapper de nivel bloque para el scroller y su fila de navegación: el
+     engine monta este nodo como bloque (sibling de los párrafos) y la fila
+     ‹ › vive fuera del contenedor overflow-x del carrusel. */
+  .projects-widget {
+    display: block;
+  }
+
   .projects-scroller {
     display: block;
     max-width: 100%;
