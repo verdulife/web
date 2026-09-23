@@ -539,36 +539,39 @@
     margin-top: 0;
   }
 
-  /* Inline thread widget — link: favicon delante + label subrayado (monocromo).
-     Flujo inline clásico (no flex): el label comparte la línea base del párrafo
-     y solo el icono se alinea con vertical-align, evitando el desfase vertical
-     que produce inline-flex + align-items:flex-start con fuente grande y
-     line-height compacto. El label va acotado a ~20 chars con “…” (truncateLabel),
-     así que nowrap mantiene el widget en una sola línea sin riesgo de desborde. */
+  /* Inline thread widget — link: pill mono uppercase con favicon (estilo a prueba).
+     Reemplaza el underline: chip redondeado, mono, uppercase, cuerpo 0.6em del serif
+     del párrafo para que asiente en la línea. Monocromo; alineación tunable si el
+     usuario ajusta a ojo. */
   .widget-link {
-    display: inline;
+    display: inline-block;
+    vertical-align: middle;
+    background-color: var(--color-paper-deep);
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    padding: 0.14rem 0.65rem 0.18rem;
+    font-family: var(--font-mono);
+    font-size: 0.6em;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
     color: var(--color-ink);
     text-decoration: none;
     white-space: nowrap;
+    transition: color 0.15s ease, border-color 0.15s ease;
   }
 
-  .widget-link-label {
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
-  }
-
-  .widget-link:hover .widget-link-label,
-  .widget-link:focus-visible .widget-link-label {
+  .widget-link:hover,
+  .widget-link:focus-visible {
     color: var(--color-ink-muted);
+    border-color: var(--color-ink-muted);
   }
 
   .widget-link-icon {
     display: inline-block;
-    width: 16px;
-    height: 16px;
-    vertical-align: -0.15em;
-    margin-right: 0.35rem;
+    width: 0.9em;
+    height: 0.9em;
+    vertical-align: -0.12em;
+    margin-right: 0.45em;
     object-fit: contain;
   }
 
