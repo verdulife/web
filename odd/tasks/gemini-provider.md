@@ -50,6 +50,7 @@ Probar el tier gratuito de la Gemini API como proveedor del chat del porfolio (w
 | --- | --- | --- | --- |
 | e78102e feat(worker gemini adapter) | 1 | pending assess | writer validation: tsc 0 + suite 213/213; verify consolidado PASS (sin blockers) |
 | 54f2385 feat(worker gemini config) | 2 | pending assess | writer validation + verify PASS; newline final añadido en gemini.ts |
+| (rama feat/gemini-provider, cierre) | 1–3 | native review decline | gentle_review START → consent-declined-this-candidate (sin lineage, sin mutación; decisión del usuario). Validación efectiva: writer validation + gentle-ai-verify consolidado PASS (verificador separado, barra RDD-off) |
 | (task-4 boundary) | 4 | pending | smoke live + decisión de producción (requiere API key del usuario) |
 
 ## App contract deltas
