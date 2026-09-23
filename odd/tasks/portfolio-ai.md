@@ -152,9 +152,11 @@ Context: Workers AI free tier exhausted its **10,000 neurons/day** (error 4006) 
 
 | Decision | Value |
 | --- | --- |
-| UI/widget testing today | **Local mock AI provider** (`AI_PROVIDER=mock`, dev-only) returning template replies with real widget tokens — see `worker:dev:mock` |
+| UI/widget testing today | ✅ **Done (M1, 2026-09-23)** — local mock AI provider (`AI_PROVIDER=mock`, dev-only) returning template replies with real widget tokens — `MockAIProvider` in `worker/src/ai.ts`, gated in the worker default export; see `worker:dev:mock` |
 | Production (pending real-data) | Decide after quota reset: (B) small Workers AI model (llama-3.2-3b-instruct or 3.1-8b, ~30-40x cheaper/call) + token diet, vs (C) Gemini API free tier (1,500 req/day, 1M TPM; EU exempt from training) proxied via the Worker |
 | Cost anchors (verified 2026) | Workers AI: 10k neurons/day free, $0.011/1k beyond; llama-3.2-3b ≈ 4,625 neurons/M input tokens (vs 70B ≈ 40x). Gemini free: 1,500 req/day Flash, 1M TPM, 15 RPM (Google AI docs); some CF models now require Paid (403) |
 | Fallback | Keep graceful `502 ai_unavailable` UX while quota/spend exhausted; document contact path |
 
 Mock contract: `AI_PROVIDER` env `"mock"` selects `MockAIProvider` in `handleChat` deps; keyword-routed canned replies (profile → image widget, contact → link widgets, default → mixed + a bare URL to demo auto-conversion); sources empty. Never set in deploy config (`[vars]` untouched); only `--var AI_PROVIDER:mock` on local dev.
+
+M1 evidence (2026-09-23): `cd worker && bun run check` → exit 0 (tsc clean); `cd worker && bun run test` → all pass, 7 files / 158 → 174 tests (16 new in `worker/tests/mock.test.ts`); routing table — profile/foto/retrato/quien es/eres/aspecto → `[[widget:image src="/verdu.jpg" alt="Retrato de Albert Verdu"]]` + bio, contacto/contactar/linkedin/github/redes/email/correo → LinkedIn + GitHub `[[widget:link]]` in a sentence, default → Astro link widget + bare `https://astro.build` (auto-converted). Live dev runner: `bun run worker:dev:mock`. `worker/wrangler.toml` `[vars]` untouched (deploy safety: mock only via CLI `--var`).

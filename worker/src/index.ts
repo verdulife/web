@@ -1,5 +1,5 @@
 import type { AIProvider } from "./ai";
-import { CloudflareAIProvider } from "./ai";
+import { CloudflareAIProvider, MockAIProvider } from "./ai";
 import { ChatRunError, runChat } from "./chat";
 import { createKnowledgeProvider } from "./knowledge";
 import type { KnowledgeProvider } from "./knowledge";
@@ -224,7 +224,7 @@ export default {
     const deps: HandlerDeps = {
       rateLimiter: createRateLimiter(env),
       knowledge: createKnowledgeProvider(env),
-      ai: new CloudflareAIProvider(env.AI, env.MODEL_ID),
+      ai: env.AI_PROVIDER === "mock" ? new MockAIProvider() : new CloudflareAIProvider(env.AI, env.MODEL_ID),
       limits: limitsFromEnv(env),
       allowedOrigins: allowedOriginsFromEnv(env),
     };

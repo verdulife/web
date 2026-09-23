@@ -3,6 +3,8 @@ import type { Widget } from "./widgets";
 export interface Env {
   AI: any;
   MODEL_ID: string;
+  /** Dev-only mock selection (`--var AI_PROVIDER:mock`); absent = real provider. */
+  AI_PROVIDER?: string;
   GITHUB_REPO: string;
   GITHUB_REF: string;
   GITHUB_TOKEN: string;

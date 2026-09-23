@@ -181,3 +181,64 @@ function recoverDocumentId(source: string): Record<string, unknown> {
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
+
+/**
+ * Local mock AI provider — DEVELOPMENT/TESTING AID ONLY. Never select it in
+ * production config (worker/wrangler.toml `[vars]` must stay untouched; only
+ * the CLI `--var AI_PROVIDER:mock` enables it on local dev). It returns
+ * keyword-routed template replies containing real inline widget tokens so the
+ * UI widgets are exercisable in the browser without any model account (the
+ * Workers AI free quota is exhausted). Replies always carry `toolCalls: null`,
+ * so runChat returns them on the first turn and `sources` stays empty — fine
+ * for UI testing.
+ */
+export class MockAIProvider implements AIProvider {
+  async generate(request: AiRequest): Promise<AiResponse> {
+    return { text: mockReplyFor(getLastUserContent(request.messages)), toolCalls: null };
+  }
+}
+
+/** Content of the last user message, or "" when there is none. */
+function getLastUserContent(messages: AiRequest["messages"]): string {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    if (messages[index].role === "user") return messages[index].content ?? "";
+  }
+  return "";
+}
+
+/** Lowercase substrings that route a request to the profile (image) reply. */
+const PROFILE_KEYWORDS = ["profile", "foto", "retrato", "quién es", "quien es", "eres", "aspecto"];
+
+/** Lowercase substrings that route a request to the contact (link) reply. */
+const CONTACT_KEYWORDS = ["contacto", "contactar", "linkedin", "github", "redes", "email", "correo"];
+
+/**
+ * Pure keyword router for the mock provider. Returns the raw template text
+ * with `[[widget:...]]` tokens (the default route also carries a bare URL so
+ * normalizeWidgets demos auto-conversion); the handler normalizes those into
+ * canonical `[[widget:N]]` placeholders plus validated widgets. Profile wins
+ * over contact when a request matches both. Every reply stays within
+ * MAX_WIDGETS (<= 4 valid candidates).
+ */
+export function mockReplyFor(lastUserText: string): string {
+  const text = lastUserText.toLowerCase();
+  if (PROFILE_KEYWORDS.some((keyword) => text.includes(keyword))) {
+    return (
+      '[[widget:image src="/verdu.jpg" alt="Retrato de Albert Verdu"]] ' +
+      "Soy Albert Verdu, desarrollador de software; este es mi retrato para el porfolio."
+    );
+  }
+  if (CONTACT_KEYWORDS.some((keyword) => text.includes(keyword))) {
+    return (
+      "Puedes contactarme por " +
+      '[[widget:link url="https://www.linkedin.com/in/albert-verdu" label="LinkedIn"]] ' +
+      "o ver mi código en " +
+      '[[widget:link url="https://github.com/verdulife" label="GitHub"]].'
+    );
+  }
+  return (
+    "Trabajo en proyectos web con Astro y Cloudflare; por ejemplo " +
+    '[[widget:link url="https://astro.build" label="Astro"]] ' +
+    "— https://astro.build (la tecnología de esta web)."
+  );
+}
