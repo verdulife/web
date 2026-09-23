@@ -507,6 +507,7 @@
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+    scrollbar-width: none; /* Firefox: oculta la barra de scroll del hilo */
     /* width: 100% pins the cross size so auto-margin centering cannot
        shrink-to-fit the thread while streaming content grows it. The
        max-width below still caps it on wide screens. */
@@ -514,6 +515,10 @@
     max-width: 44rem;
     margin-inline: auto;
     scroll-behavior: smooth;
+  }
+
+  .ask-thread::-webkit-scrollbar {
+    display: none; /* WebKit/Blink: equivalente a scrollbar-width:none */
   }
 
   .ask-thread:focus {
