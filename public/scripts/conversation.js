@@ -994,15 +994,15 @@
   }
 
   /**
-   * Q2 — projects scroller widget renderer (block layout).
+   * projects scroller widget renderer (block layout).
    *
    * Renders the ALL-projects horizontal scroller: a region span holding a
    * flex track of one card per project. Each card is an anchor to the site's
    * static detail route `/proyectos/<slug>/` (normal navigation — no
-   * preventDefault) and carries the editorial look of the reverted page
-   * cards: mono 01-based index, optional `sitio ↗` faux-link (the whole card
-   * is already the anchor, so the site span stays non-interactive text),
-   * serif title and description. A null/empty list drops the placeholder.
+   * preventDefault). The card head carries an optional Google-s2 favicon for
+   * the project url (hostname via hostnameFromUrl; a url that does not parse
+   * to a hostname omits the icon) followed by the serif title, then the
+   * description. A null/empty list drops the placeholder.
    * Nodes are built with createElement/textContent only — never innerHTML;
    * any unexpected exception returns null.
    */
@@ -1031,28 +1031,36 @@
         card.className = "projects-card";
         card.href = "/proyectos/" + project.slug + "/";
 
-        var top = document.createElement("span");
-        top.className = "projects-card-top";
+        var head = document.createElement("span");
+        head.className = "projects-card-head";
 
-        var index = document.createElement("span");
-        index.className = "mono-meta";
-        index.setAttribute("aria-hidden", "true");
-        index.textContent = String(i + 1).padStart(2, "0");
-        top.append(index);
-
-        if (typeof project.url === "string" && project.url !== "") {
-          var site = document.createElement("span");
-          site.className = "mono-meta projects-card-site";
-          site.textContent = "sitio ↗";
-          top.append(site);
+        var host = "";
+        if (
+          typeof project.url === "string" &&
+          (project.url.slice(0, 8) === "https://" ||
+            project.url.slice(0, 7) === "http://")
+        ) {
+          host = hostnameFromUrl(project.url);
         }
-
-        card.append(top);
+        if (host !== "") {
+          var icon = document.createElement("img");
+          icon.className = "projects-card-icon";
+          icon.alt = "";
+          icon.loading = "lazy";
+          icon.referrerPolicy = "no-referrer";
+          icon.src =
+            "https://www.google.com/s2/favicons?domain=" +
+            encodeURIComponent(host) +
+            "&sz=32";
+          head.append(icon);
+        }
 
         var title = document.createElement("strong");
         title.className = "projects-card-title";
         title.textContent = project.title;
-        card.append(title);
+        head.append(title);
+
+        card.append(head);
 
         var description = document.createElement("span");
         description.className = "projects-card-desc";

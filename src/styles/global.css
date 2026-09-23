@@ -701,7 +701,7 @@
   /* Inline thread widget — projects: scroller horizontal editorial (Q2/Q3).
      Todas las tarjetas de proyecto en un carrusel con snap, scrollbar
      oculto y máscara de difuminado en los bordes (peek sin corte duro);
-     misma estética que las tarjetas de /proyectos (índice mono + sitio ↗). */
+     misma estética que las tarjetas de /proyectos (favicon + título). */
   .projects-scroller {
     display: block;
     max-width: 100%;
@@ -713,6 +713,9 @@
     -webkit-mask-image: linear-gradient(to right, transparent 0, #000 1.25rem, #000 calc(100% - 1.25rem), transparent 100%);
     mask-image: linear-gradient(to right, transparent 0, #000 1.25rem, #000 calc(100% - 1.25rem), transparent 100%);
     padding: 0.25rem 0 1.5rem;
+    /* Igual ancho que el fade de la máscara: la tarjeta en reposo (izquierda)
+       queda fuera de la zona transparente y la de peek (derecha) también. */
+    padding-inline: 1.25rem;
     cursor: grab;
   }
 
@@ -741,16 +744,17 @@
     color: inherit;
   }
 
-  .projects-card-top {
+  .projects-card-head {
     display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: baseline;
+    align-items: center;
+    gap: 0.55rem;
   }
 
-  .projects-card-site {
-    white-space: nowrap;
-    font-size: 0.66rem;
+  .projects-card-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    flex-shrink: 0;
   }
 
   .projects-card-title {
