@@ -994,6 +994,32 @@
   }
 
   /**
+   * Steps the projects scroller by one card slot: the first card's offsetWidth
+   * plus the track's computed column gap (parsed as px from getComputedStyle,
+   * falling back to 20 when the gap is unavailable or not a positive number).
+   * No-op when the scroller has no cards. Used by the desktop-only nav row in
+   * renderProjects; smooth-scroll via scrollBy, DOM-only (no innerHTML).
+   */
+  function scrollProjects(scroller, direction) {
+    var card = scroller.querySelector(".projects-card");
+    if (card === null) return;
+    var gap = 20;
+    try {
+      var track = scroller.querySelector(".projects-track");
+      if (track !== null) {
+        var rawGap = parseFloat(getComputedStyle(track).gap);
+        if (rawGap > 0) gap = rawGap;
+      }
+    } catch (error) {
+      // Layout API unavailable (stub environment): keep the 20px fallback.
+    }
+    scroller.scrollBy({
+      left: direction * (card.offsetWidth + gap),
+      behavior: "smooth",
+    });
+  }
+
+  /**
    * projects scroller widget renderer (block layout).
    *
    * Renders the ALL-projects horizontal scroller: a region span holding a
@@ -1074,6 +1100,28 @@
       }
 
       scroller.append(track);
+
+      var nav = document.createElement("span");
+      nav.className = "projects-nav";
+      var prev = document.createElement("button");
+      prev.type = "button";
+      prev.className = "projects-nav-button";
+      prev.setAttribute("aria-label", "Proyectos anteriores");
+      prev.textContent = "‹";
+      var next = document.createElement("button");
+      next.type = "button";
+      next.className = "projects-nav-button";
+      next.setAttribute("aria-label", "Siguientes proyectos");
+      next.textContent = "›";
+      nav.append(prev, next);
+      scroller.append(nav);
+
+      prev.addEventListener("click", function () {
+        scrollProjects(scroller, -1);
+      });
+      next.addEventListener("click", function () {
+        scrollProjects(scroller, 1);
+      });
       return scroller;
     } catch (error) {
       return null;
