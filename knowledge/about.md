@@ -11,4 +11,6 @@ Me llamo Albert Verdu. Soy diseñador gráfico y desarrollador frontend de Barce
 
 Vivo y trabajo desde Olivella, con actividad en Sitges (Barcelona).
 
+Imagen disponible del perfil: retrato en /verdu.jpg (se puede mostrar con el widget de imagen cuando se hable de quién es o de su aspecto).
+
 Mi enfoque se reparte entre el diseño editorial y web, y las interfaces y herramientas digitales: piezas impresas, webs editoriales, aplicaciones y utilidades que dan servicio al día a día de estudios, imprentas y equipos pequeños. El objetivo es que cada pieza, en papel o en pantalla, tenga intención y esté lista para su producción.
