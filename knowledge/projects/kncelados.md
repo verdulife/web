@@ -3,6 +3,7 @@ id: kncelados
 kind: project
 title: "Kncelados (podcast)"
 description: "Web oficial del podcast Kncelados, con episodios, colecciones y cortos."
+url: "https://www.kncelados.com"
 ---
 
 # Kncelados (podcast)

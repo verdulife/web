@@ -19,6 +19,12 @@
       "content": "# Botanic\n\n## Qué es\n\nUn marketplace P2P de plantas, «donde las plantas se encuentran con la gente». El servicio conecta directamente a personas que ofrecen y buscan plantas, sin intermediarios. Es un proyecto propio con formato de startup y no es open-source.\n\nAdemás de la plataforma, existe un pipeline de publicación social separado (botanic-social) con estrategia, programación de publicaciones y un estudio Remotion para generar contenido para redes.\n\n## Tecnología\n\nSvelteKit y Bun para la plataforma; Remotion para el pipeline social.\n\n## Estado\n\n\n\n## Enlace\n\nhttps://botanicapp.es"
     },
     {
+      "id": "calandraautomobili",
+      "title": "Calandra Automobili",
+      "description": "Sitio web de Calandra Automobili, negocio de automoción, desarrollado por Albert Verdu.",
+      "content": "# Calandra Automobili\n\n## Qué es\n\nSitio web de Calandra Automobili, un negocio de automoción. Es un proyecto desarrollado por Albert Verdu.\n\n\n\n## Tecnología\n\nAstro.js, Tailwind CSS y GSAP.\n\n## Enlace\n\nhttps://www.calandraautomobili.com/"
+    },
+    {
       "id": "contact",
       "title": "Contacto",
       "description": "Canales públicos: portfolio, LinkedIn y GitHub.",
@@ -49,6 +55,18 @@
       "content": "# Gaplogic\n\n## Qué es\n\nLa web y el ecosistema digital de Gaplogic. Incluye la web, construida con WordPress y Divi; el POS gapcloud —«un simple POS para los tiempos modernos»—, desarrollado con SvelteKit bajo la organización de GitHub de Gaplogic y todavía en construcción; y un reporte de tareas que se distribuye por email a partir de una plantilla en HTML, con un flujo de Notion a email.\n\n\n\n## Tecnología\n\nWordPress con Divi para la web y SvelteKit para el POS gapcloud.\n\n## Estado\n\nLa web está en producción; el POS está en desarrollo.\n\n## Enlace\n\nhttps://testing.gaplogic.com/"
     },
     {
+      "id": "gaudioart",
+      "title": "Gaudio Art | Diseño de trofeos exclusivos",
+      "description": "Diseño de trofeos exclusivos.",
+      "content": "# Gaudio Art\n\n## Qué es\n\nWeb de Gaudio Art, dedicada al diseño de trofeos exclusivos.\n\n## Tecnología\n\nWordPress y Divi.\n\n## Enlace\n\nhttps://www.gaudiobarcelona.com/"
+    },
+    {
+      "id": "jardinerialamediterrania",
+      "title": "Jardinería La Mediterrània",
+      "description": "Jardinería La Mediterrània, tus jardineros en Sitges, Vilafranca, Ribes, Cunit y alrededores. Confía en nosotros para cuidar tu jardín con el mismo cariño y dedicación que hemos heredado generación tras generación.",
+      "content": "# Jardinería La Mediterrània\n\n## Qué es\n\nWeb de Jardinería La Mediterrània, un servicio de jardinería con presencia en Sitges, Vilafranca, Ribes, Cunit y alrededores. El propio sitio se presenta como «tus jardineros» en la zona y apela a la confianza para cuidar el jardín «con el mismo cariño y dedicación que hemos heredado generación tras generación».\n\n## Tecnología\n\nAstro.js, Tailwind CSS y Playwright.\n\n## Enlace\n\nhttps://www.jardinerialamediterrania.com/"
+    },
+    {
       "id": "kncelados",
       "title": "Kncelados (podcast)",
       "description": "Web oficial del podcast Kncelados, con episodios, colecciones y cortos.",
@@ -61,16 +79,70 @@
       "content": "# Mando\n\n## Qué es\n\nUna herramienta que convierte iPhones y otros navegadores en mandos virtuales de Xbox 360 para Windows. El móvil actúa como mando, ViGEmBus emula el controlador para que el sistema lo reconozca y la app funciona como PWA instalable. El descubrimiento en la red local se resuelve con mDNS.\n\n## Tecnología\n\nViGEmBus, Bun, PWA y mDNS.\n\n## Estado\n\nPublicado, con releases disponibles.\n\n## Enlace\n\nReleases en https://github.com/verdulife/mando"
     },
     {
+      "id": "mdisitges",
+      "title": "MDI | Muebles, Decoración, Interiorismo en Sitges",
+      "description": "Muebles, decoración e interiorismo en Sitges.",
+      "content": "# MDI Sitges\n\n## Qué es\n\nWeb de MDI, un negocio de muebles, decoración e interiorismo en Sitges.\n\n## Tecnología\n\nWordPress y Elementor.\n\n## Enlace\n\nhttps://mdisitges.com"
+    },
+    {
+      "id": "menuplis",
+      "title": "menuplis | Mucho más que menús y cartas digitales",
+      "description": "Mucho más que menús y cartas digitales.",
+      "content": "# Menuplis\n\n## Qué es\n\nWeb de Menuplis, una propuesta de menús y cartas digitales que se presenta como «mucho más que menús y cartas digitales».\n\n## Tecnología\n\nAngular.js y Firebase.\n\n## Enlace\n\nhttps://menuplis.netlify.app"
+    },
+    {
+      "id": "seastone",
+      "title": "Seastone Homes",
+      "description": "Descubre promociones inmobiliarias exclusivas en Cataluña con Seastone Homes. Viviendas de calidad, diseño innovador y sostenibilidad.",
+      "content": "# Seastone Homes\n\n## Qué es\n\nWeb de Seastone Homes, centrada en promociones inmobiliarias exclusivas en Cataluña: viviendas de calidad, diseño innovador y sostenibilidad.\n\n## Tecnología\n\nWordPress y Elementor.\n\n## Enlace\n\nhttps://www.seastone.es"
+    },
+    {
       "id": "services",
       "title": "Servicios",
       "description": "Diseño y desarrollo web, diseño gráfico y de imprenta, UI/UX con enfoque design-first y automatización.",
       "content": "# Servicios\n\n## Diseño y desarrollo web\n\nWebs editoriales y aplicaciones construidas con Astro o SvelteKit, y mantenimiento de proyectos existentes sobre WordPress con Divi.\n\n## Diseño gráfico y de imprenta\n\nIdentidad, piezas impresas, preflight y utilidades de imprenta que preparan los ficheros para producción.\n\n## UI/UX con enfoque design-first\n\nInterfaces pensadas primero desde el diseño —jerarquía, tipografía y ritmo visual— y desarrolladas después con atención al detalle.\n\n## Automatización y asistentes\n\nHerramientas y agentes propios: integraciones con MCP, agentes multi-sistema como art-director, que genera pósters listos para imprenta, y asistentes tipo bridge. Son proyectos internos y se ofrecen como capacidad puntual.\n\n## Para quién\n\nAutónomos, estudios de diseño, imprentas y organización de eventos."
     },
     {
+      "id": "sglvilanova",
+      "title": "SGL Vilanova",
+      "description": "Alquiler de truss de aluminio e instalaciones eléctricas temporales certificadas para eventos. Las soluciones más seguras y adaptadas a la normativa actual.",
+      "content": "# SGL Vilanova\n\n## Qué es\n\nWeb de SGL Vilanova, dedicada al alquiler de truss de aluminio e instalaciones eléctricas temporales certificadas para eventos, con soluciones «adaptadas a la normativa actual».\n\n## Tecnología\n\nAstro.js y Tailwind CSS.\n\n## Enlace\n\nhttps://www.sglvilanova.com"
+    },
+    {
+      "id": "simplementewear",
+      "title": "Simple-mente Wear",
+      "description": "Un pantalón práctico de carácter minimalista, ideal para aquellas personas que aprecian sentirse cómodos y que les gusta moverse sin limitaciones.",
+      "content": "# Simple-mente Wear\n\n## Qué es\n\nWeb de Simple-mente Wear, centrada en un pantalón práctico de carácter minimalista, pensado para «aquellas personas que aprecian sentirse cómodos y que les gusta moverse sin limitaciones».\n\n## Tecnología\n\nSvelte.js y Resend.\n\n## Enlace\n\nhttps://www.simplementewear.com"
+    },
+    {
+      "id": "sitgesgi",
+      "title": "Sitges GI",
+      "description": "Sitio web de Sitges GI desarrollado por Albert Verdu, con edición de 2025.",
+      "content": "# Sitges GI\n\n## Qué es\n\nSitio web de Sitges GI, desarrollado por Albert Verdu. La edición publicada es la de 2025.\n\n\n\n## Tecnología\n\nAstro.js y Netlify CMS.\n\n## Enlace\n\nhttps://www.sitgesgi.com"
+    },
+    {
       "id": "skills",
       "title": "Habilidades",
       "description": "Tecnologías principales y áreas de diseño, del día a día y de proyectos puntuales.",
       "content": "# Habilidades\n\nLas habilidades se agrupan en dos bloques: las tecnologías con las que trabajo y las áreas de diseño que cubro.\n\n## Tecnologías\n\nEl stack principal es Astro, SvelteKit, TailwindCSS, TypeScript, Bun y Node; la combinación más habitual es Astro o SvelteKit con TailwindCSS y TypeScript. Además, en proyectos concretos han aparecido GSAP, Playwright, WordPress con Divi, Angular con Firebase, PDFlib.js y Remotion.\n\n## Áreas de diseño\n\nDiseño gráfico, identidad, UI/UX, diseño editorial y de imprenta, preflight y herramientas de preimpresión. Son áreas que se solapan: el preflight, por ejemplo, une el diseño de imprenta con las herramientas digitales.\n\nLa lista está en evolución: unas tecnologías forman parte del día a día y otras aparecen en proyectos puntuales; no se indican niveles de dominio."
+    },
+    {
+      "id": "stopperinternational",
+      "title": "Stopper International",
+      "description": "Fernando López del Amo, Agente FIFA — Stopper International.",
+      "content": "# Stopper International\n\n## Qué es\n\nWeb de Stopper International, el proyecto profesional de Fernando López del Amo como Agente FIFA.\n\n## Tecnología\n\nWordPress, Divi y Atropos.js.\n\n## Enlace\n\nhttps://www.stopperinternational.com/"
+    },
+    {
+      "id": "tattookiller",
+      "title": "TattooKiller | Eliminación de tatuajes",
+      "description": "Eliminación de tatuajes.",
+      "content": "# TattooKiller\n\n## Qué es\n\nWeb de TattooKiller, un servicio de eliminación de tatuajes.\n\n## Tecnología\n\nAstro.js, Tailwind CSS y Playwright.\n\n## Enlace\n\nhttps://www.tattookiller.es/"
+    },
+    {
+      "id": "ulavet",
+      "title": "ULAVET | Clinica veterinaria a Sant Pere de Ribes",
+      "description": "Clínica veterinaria en Sant Pere de Ribes.",
+      "content": "# ULAVET\n\n## Qué es\n\nWeb de ULAVET, una clínica veterinaria situada en Sant Pere de Ribes.\n\n## Tecnología\n\nAstro.js, Tailwind CSS y Playwright.\n\n## Enlace\n\nhttps://www.ulavet.com/"
     },
     {
       "id": "weprintpdf",

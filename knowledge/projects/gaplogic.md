@@ -3,6 +3,7 @@ id: gaplogic
 kind: project
 title: "Gaplogic"
 description: "Web y ecosistema digital de Gaplogic: web WordPress, POS gapcloud y reporte de tareas."
+url: "https://testing.gaplogic.com"
 ---
 
 # Gaplogic
