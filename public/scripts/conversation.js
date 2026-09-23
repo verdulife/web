@@ -538,14 +538,7 @@
     img.decoding = "async";
     figure.appendChild(img);
 
-    var caption = typeof widget.caption === "string" ? widget.caption.trim() : "";
-    if (caption !== "") {
-      var captionNode = document.createElement("span");
-      captionNode.className = "widget-image-caption";
-      captionNode.textContent = caption.slice(0, MAX_WIDGET_IMAGE_TEXT_CHARS);
-      figure.appendChild(captionNode);
-    }
-
+    // Sin pie de foto: estilo polaroid, marco blanco solo en CSS.
     return figure;
   }
 

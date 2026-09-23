@@ -575,31 +575,24 @@
     object-fit: contain;
   }
 
-  /* Inline thread widget — image: figure en bloque con ancho acotado, borde
-     sutil y caption mono uppercase centrado; monocromo. */
+  /* Inline thread widget — image: figura tipo polaroid al 3/4 del hilo.
+     Marco blanco (padding) sobre papel cálido, borde fino y sombra suave;
+     sin pie de foto. Monocromo. */
   .widget-image {
     display: block;
-    margin: 1.25rem 0 1.5rem;
+    width: min(75%, 30rem);
+    margin: 1.5rem auto;
+    padding: 0.5rem 0.5rem 0.75rem;
+    background-color: #ffffff;
+    border: 1px solid var(--color-line);
+    border-radius: 2px;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.14);
   }
 
   .widget-image-img {
     display: block;
-    width: min(78%, 34rem);
+    width: 100%;
     height: auto;
-    margin: 0 auto;
-    border: 1px solid var(--color-line);
-    border-radius: 4px;
-  }
-
-  .widget-image-caption {
-    display: block;
-    margin-top: 0.55rem;
-    font-family: var(--font-mono);
-    text-transform: uppercase;
-    font-size: 0.66rem;
-    letter-spacing: 0.14em;
-    color: var(--color-ink-muted);
-    text-align: center;
   }
 
   .ask-user {
