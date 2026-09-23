@@ -36,6 +36,8 @@
   var WORKER_URL_FALLBACK = "http://localhost:8787";
   var MAX_CONTEXT_MESSAGES = 8;
   var REQUEST_TIMEOUT_MS = 25_000;
+  /** Display cap for widget labels: longer names are elided with “…” (full text stays in the title). */
+  var MAX_WIDGET_LABEL_CHARS = 20;
 
   var INTRO_TEXT =
     "Hola, soy Albert Verdú, desarrollador web y diseñador gráfico con más de 20 años de experiencia. ¿En qué puedo ayudarte?";
@@ -341,10 +343,24 @@
     return node instanceof HTMLElement ? node : null;
   }
 
+  /**
+   * Elides `text` to at most `max` visible characters, appending “…” when it
+   * was cut. Exact character count (not CSS ch approximation). Shared by every
+   * widget renderer so label display stays consistent across the thread.
+   */
+  function truncateLabel(text, max) {
+    var safe = String(text ?? "");
+    if (safe.length <= max) return safe;
+    var cut = max - 1;
+    if (cut <= 0) return "…";
+    return safe.slice(0, cut) + "…";
+  }
+
   window.PortfolioWidgets = {
     register: register,
     setLinkMetaResolver: setLinkMetaResolver,
     splitReply: splitReply,
+    truncateLabel: truncateLabel,
   };
 
   /**
@@ -454,7 +470,13 @@
 
       var label = document.createElement("span");
       label.className = "widget-link-label";
-      label.textContent = (meta && meta.label) || hostname;
+      var fullLabel = (meta && meta.label) || hostname;
+      label.textContent = truncateLabel(fullLabel, MAX_WIDGET_LABEL_CHARS);
+      if (label.textContent !== fullLabel) {
+        // Truncated: keep the full name reachable (hover + screen reader).
+        anchor.title = fullLabel + " — " + url;
+        anchor.setAttribute("aria-label", fullLabel);
+      }
 
       anchor.append(icon, label);
       return anchor;
