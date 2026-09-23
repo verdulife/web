@@ -3,7 +3,8 @@
 /* ---------------------------------------------------------------------------
    Design tokens — Tailwind CSS v4 theme.
    Editorial newspaper identity: warm paper, near-black ink, monochrome accent.
-   Light-only by design; there is no dark-mode variant.
+   Light is the default; a warm dark variant follows the system preference and
+   can be overridden manually (see the data-theme overrides below).
    --------------------------------------------------------------------------- */
 @theme {
   --font-serif: "Newsreader Variable", Georgia, serif;
@@ -15,6 +16,51 @@
   --color-ink-muted: #6e6759;
   --color-line: #cdc5b4;
   --color-accent: #171512;
+  --color-surface: #ffffff;
+}
+
+/* ---------------------------------------------------------------------------
+   Dark theme overrides (plain CSS, outside any layer so they win).
+   Default follows the system preference; a manual data-theme override set
+   pre-paint by the layout wins over the system. The dark token block is
+   duplicated across the two dark scopes (media + forced) because plain CSS
+   cannot share blocks — keep both in sync with the @theme light defaults.
+   --------------------------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]),
+  :root[data-theme="auto"] {
+    --color-paper: #131110;
+    --color-paper-deep: #1d1a17;
+    --color-ink: #e7e2d8;
+    --color-ink-muted: #98917f;
+    --color-line: #3b362d;
+    --color-accent: #e7e2d8;
+    --color-surface: #1f1c19;
+    color-scheme: dark;
+  }
+}
+
+/* Forced dark: same token block as the media scope above. */
+:root[data-theme="dark"] {
+  --color-paper: #131110;
+  --color-paper-deep: #1d1a17;
+  --color-ink: #e7e2d8;
+  --color-ink-muted: #98917f;
+  --color-line: #3b362d;
+  --color-accent: #e7e2d8;
+  --color-surface: #1f1c19;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --color-paper: #f2efe7;
+  --color-paper-deep: #e8e2d4;
+  --color-ink: #171512;
+  --color-ink-muted: #6e6759;
+  --color-line: #cdc5b4;
+  --color-accent: #171512;
+  --color-surface: #ffffff;
+  color-scheme: light;
 }
 
 :root {
@@ -341,6 +387,38 @@
     text-align: center;
   }
 
+  /* Theme selector row (AUTO / CLARO / OSCURO) between the nav list and
+     the footer: mono uppercase buttons, active one inked and underlined. */
+  .site-menu-theme {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 2.25rem;
+  }
+
+  .theme-button {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    color: var(--color-ink-muted);
+    transition: color 0.15s ease;
+  }
+
+  .theme-button:hover,
+  .theme-button:focus-visible {
+    color: var(--color-ink);
+  }
+
+  .theme-button[aria-pressed="true"] {
+    color: var(--color-ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
   @media (min-width: 48rem) {
     .site-menu-inner {
       padding: 3rem 2rem calc(2rem + env(safe-area-inset-bottom));
@@ -597,7 +675,7 @@
     width: min(37.5%, 15rem);
     margin: 1.5rem 0; /* alineado a la izquierda de la columna */
     padding: 0.5rem 0.5rem 0.75rem;
-    background-color: #ffffff;
+    background-color: var(--color-surface);
     border: 1px solid var(--color-line);
     border-radius: 2px;
     box-shadow: 0 1px 4px rgb(0 0 0 / 0.14);
@@ -619,7 +697,7 @@
     width: 100%;
     max-width: 30rem;
     margin: 1.25rem 0; /* alineado a la izquierda de la columna */
-    background-color: #ffffff;
+    background-color: var(--color-surface);
     border: 1px solid var(--color-line);
     border-radius: 10px;
     box-shadow: 0 1px 5px rgb(0 0 0 / 0.12);

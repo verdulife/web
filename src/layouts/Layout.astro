@@ -31,6 +31,14 @@ const currentYear = new Date().getFullYear();
 <!doctype html>
 <html lang={SITE.lang}>
   <head>
+    <script is:inline>
+      (function () {
+        var stored = null;
+        try { stored = window.localStorage.getItem("verdu-theme"); } catch (e) {}
+        var theme = stored === "light" || stored === "dark" ? stored : "auto";
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
@@ -114,6 +122,12 @@ const currentYear = new Date().getFullYear();
             }
           </ul>
 
+          <nav class="site-menu-theme" aria-label="Tema de la interfaz">
+            <button type="button" class="theme-button" data-theme-mode="auto" aria-pressed="false">Auto</button>
+            <button type="button" class="theme-button" data-theme-mode="light" aria-pressed="false">Claro</button>
+            <button type="button" class="theme-button" data-theme-mode="dark" aria-pressed="false">Oscuro</button>
+          </nav>
+
           <p class="site-menu-footer">
             Hecho con ♥ por Verdu — {currentYear}
           </p>
@@ -158,6 +172,38 @@ const currentYear = new Date().getFullYear();
               toggle(false);
               button.focus();
             }
+          });
+        })();
+      </script>
+
+      <script is:inline>
+        (function () {
+          // Theme selector (AUTO / CLARO / OSCURO): persist the manual choice
+          // in localStorage and apply it on <html>. The pre-paint script in
+          // <head> already applied it before first paint; here we only wire
+          // clicks and restore the pressed state. The menu stays open: these
+          // are buttons, not links, so the close-on-link handler above never
+          // fires for them.
+          var themeButtons = document.querySelectorAll(".theme-button");
+          var storedTheme = null;
+          try { storedTheme = window.localStorage.getItem("verdu-theme"); } catch (e) {}
+          var currentTheme = storedTheme === "light" || storedTheme === "dark" ? storedTheme : "auto";
+
+          function syncPressed(active) {
+            themeButtons.forEach(function (btn) {
+              btn.setAttribute("aria-pressed", String(btn.getAttribute("data-theme-mode") === active));
+            });
+          }
+
+          syncPressed(currentTheme);
+
+          themeButtons.forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              var mode = btn.getAttribute("data-theme-mode");
+              try { window.localStorage.setItem("verdu-theme", mode); } catch (e) {}
+              document.documentElement.setAttribute("data-theme", mode);
+              syncPressed(mode);
+            });
           });
         })();
       </script>
