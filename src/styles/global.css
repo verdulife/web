@@ -744,17 +744,18 @@
     color: inherit;
   }
 
+  /* Icono en flujo inline con la primera línea del título (no flex centrado). */
   .projects-card-head {
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
+    display: block;
   }
 
   .projects-card-icon {
+    display: inline-block;
     width: 16px;
     height: 16px;
     object-fit: contain;
-    flex-shrink: 0;
+    vertical-align: -0.12em;
+    margin-right: 0.4rem;
   }
 
   .projects-card-title {
