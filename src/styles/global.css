@@ -2,7 +2,7 @@
 
 /* ---------------------------------------------------------------------------
    Design tokens — Tailwind CSS v4 theme.
-   Editorial newspaper identity: warm paper, near-black ink, one red accent.
+   Editorial newspaper identity: warm paper, near-black ink, monochrome accent.
    Light-only by design; there is no dark-mode variant.
    --------------------------------------------------------------------------- */
 @theme {
@@ -14,7 +14,7 @@
   --color-ink: #171512;
   --color-ink-muted: #6e6759;
   --color-line: #cdc5b4;
-  --color-accent: #b3261e;
+  --color-accent: #171512;
 }
 
 @layer base {
@@ -142,7 +142,8 @@
      Site header chrome + full-height menu curtain (“sumario”). Fixed bar
      height; the menu drops below the header to the bottom of the viewport
      (never covers it) and reads as an editorial numbered index with a
-     pinned colophon. Plain classes: the client toggles `hidden` only.
+     pinned footer. Plain classes: the client toggles `is-open` and the
+     curtain fades via `opacity`/`visibility`.
      ------------------------------------------------------------------------- */
   .site-header {
     --header-h: 4.25rem;
@@ -201,6 +202,20 @@
     bottom: 0;
     overflow-y: auto;
     background-color: var(--color-paper);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.28s ease, visibility 0.28s ease;
+  }
+
+  .site-menu.is-open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-menu {
+      transition: none;
+    }
   }
 
   .site-menu:focus {
@@ -214,24 +229,6 @@
     max-width: 56rem;
     margin-inline: auto;
     padding: 2.25rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
-  }
-
-  .site-menu-kicker,
-  .site-menu-colophon {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    margin: 0;
-    font-family: var(--font-mono);
-    text-transform: uppercase;
-    color: var(--color-ink-muted);
-  }
-
-  .site-menu-kicker {
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--color-line);
-    font-size: 0.68rem;
-    letter-spacing: 0.16em;
   }
 
   .site-menu-list {
@@ -248,6 +245,10 @@
     border-top: 1px solid var(--color-line);
     text-decoration: none;
     color: var(--color-ink);
+  }
+
+  .site-menu-item:first-child .site-menu-link {
+    border-top: none;
   }
 
   .site-menu-index {
@@ -318,12 +319,17 @@
     }
   }
 
-  .site-menu-colophon {
+  .site-menu-footer {
+    margin: 0;
     margin-top: auto;
     padding-top: 1rem;
     border-top: 1px solid var(--color-line);
-    font-size: 0.62rem;
-    letter-spacing: 0.16em;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    color: var(--color-ink-muted);
+    text-transform: uppercase;
+    text-align: center;
   }
 
   @media (min-width: 48rem) {

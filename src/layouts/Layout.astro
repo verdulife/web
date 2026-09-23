@@ -25,6 +25,7 @@ const canonicalUrl = new URL(Astro.url.pathname, siteUrl).href;
 const ogImageUrl = ogImage ? new URL(ogImage, siteUrl).href : undefined;
 
 const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
+const currentYear = new Date().getFullYear();
 ---
 
 <!doctype html>
@@ -88,13 +89,8 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
         </button>
       </div>
 
-      <nav id="menu-panel" aria-label="Navegación" class="site-menu" tabindex="-1" hidden>
+      <nav id="menu-panel" aria-label="Navegación" class="site-menu" tabindex="-1">
         <div class="site-menu-inner">
-          <p class="site-menu-kicker">
-            <span>Sumario</span>
-            <span>Edición local — 2026</span>
-          </p>
-
           <ul class="site-menu-list">
             {
               SITE.nav.map((item, i) => {
@@ -118,9 +114,8 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
             }
           </ul>
 
-          <p class="site-menu-colophon">
-            <span>Fin del sumario</span>
-            <span>Verdu — Sitges</span>
+          <p class="site-menu-footer">
+            Hecho con ♥ por Verdu — {currentYear}
           </p>
         </div>
       </nav>
@@ -132,8 +127,8 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
           if (!button || !panel) return;
 
           function toggle(open) {
-            var willOpen = typeof open === "boolean" ? open : panel.hidden;
-            panel.hidden = !willOpen;
+            var willOpen = typeof open === "boolean" ? open : !panel.classList.contains("is-open");
+            panel.classList.toggle("is-open", willOpen);
             button.setAttribute("aria-expanded", String(willOpen));
             // Lock background scroll while the curtain is open (the chat
             // shell is already scroll-locked; regular pages need it here).
@@ -153,7 +148,7 @@ const currentPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
           });
 
           document.addEventListener("click", function (event) {
-            if (panel.hidden) return;
+            if (!panel.classList.contains("is-open")) return;
             if (event.target && event.target.closest && event.target.closest("header")) return;
             toggle(false);
           });
