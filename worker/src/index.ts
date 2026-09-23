@@ -12,6 +12,7 @@ import {
   validateChatRequest,
 } from "./limits";
 import type { Limits } from "./limits";
+import { LinkMetaError, isFetchableUrl, resolveLinkMeta } from "./link-meta";
 import { buildSystemPrompt } from "./prompts";
 import type { Env } from "./types";
 
@@ -85,12 +86,26 @@ const AI_UNAVAILABLE_ERROR = {
   },
 };
 
+const INVALID_LINK_ERROR = {
+  error: { code: "invalid_url", message: "Enlace inválido.", retryable: false },
+};
+
+const LINK_META_UNAVAILABLE = {
+  error: {
+    code: "link_meta_unavailable",
+    message: "No se pudo obtener la información del enlace.",
+    retryable: true,
+  },
+};
+
 export interface HandlerDeps {
   rateLimiter: RateLimit;
   knowledge: KnowledgeProvider;
   ai: AIProvider;
   limits: Limits;
   allowedOrigins: string[];
+  /** Injectable fetch for tests; defaults to the global fetch in production. */
+  fetchImpl?: typeof fetch;
 }
 
 /** Pure request router: every route is reachable through here (tests included). */
@@ -111,12 +126,38 @@ export function buildHandler(deps: HandlerDeps): (request: Request, env: Env) =>
       return json({ ok: true, service: "verdu-chat", model: env.MODEL_ID }, undefined, cors);
     }
 
+    if (request.method === "GET" && url.pathname === "/api/link-meta") {
+      return handleLinkMeta(url, deps, cors);
+    }
+
     return json(
       { error: { code: "not_found", message: "Recurso no encontrado.", retryable: false } },
       { status: 404 },
       cors,
     );
   };
+}
+
+async function handleLinkMeta(
+  url: URL,
+  deps: HandlerDeps,
+  cors: Record<string, string>,
+): Promise<Response> {
+  const rawUrl = (url.searchParams.get("url") ?? "").trim();
+  if (rawUrl === "" || !isFetchableUrl(rawUrl)) {
+    return json(INVALID_LINK_ERROR, { status: 400 }, cors);
+  }
+
+  try {
+    const meta = await resolveLinkMeta(rawUrl, { fetchImpl: deps.fetchImpl });
+    return json(meta, undefined, cors);
+  } catch (error) {
+    if (error instanceof LinkMetaError && error.code === "invalid_url") {
+      return json(INVALID_LINK_ERROR, { status: 400 }, cors);
+    }
+    console.error("[link-meta]", error instanceof Error ? error.message : error);
+    return json(LINK_META_UNAVAILABLE, { status: 502 }, cors);
+  }
 }
 
 async function handleChat(
