@@ -348,6 +348,124 @@
   };
 
   /**
+   * W5 — link widget: worker-backed metadata resolver + renderer.
+   *
+   * resolveLinkMeta(url) resolves `{ label, iconUrl }` from the worker's
+   * `GET /api/link-meta?url=` endpoint. Results are cached in-session per
+   * URL: the in-flight promise is stored in the Map, so concurrent calls
+   * for the same URL share one fetch. Every failure path (network error,
+   * 4s timeout, non-ok status, malformed body) resolves `null`; this
+   * function never throws.
+   */
+  var linkMetaCache = new Map();
+
+  async function resolveLinkMeta(url) {
+    try {
+      var cached = linkMetaCache.get(url);
+      if (cached) return cached;
+
+      // Same worker base URL resolution as postChat.
+      var workerUrl = window.__PORTFOLIO_WORKER_URL ?? WORKER_URL_FALLBACK;
+      var pending = (async function () {
+        try {
+          var response = await fetch(
+            workerUrl + "/api/link-meta?url=" + encodeURIComponent(url),
+            {
+              headers: { Accept: "application/json" },
+              signal: AbortSignal.timeout(4000),
+            }
+          );
+          if (!response.ok) return null;
+          var body = await response.json();
+          if (
+            typeof body === "object" &&
+            body !== null &&
+            typeof body.label === "string" &&
+            typeof body.iconUrl === "string"
+          ) {
+            return { label: body.label, iconUrl: body.iconUrl };
+          }
+          return null;
+        } catch (error) {
+          return null;
+        }
+      })();
+
+      linkMetaCache.set(url, pending);
+      return pending;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Renders a link widget as `<a class="widget-link">` (target _blank,
+   * rel noopener noreferrer, title = raw URL) holding a favicon
+   * `<img class="widget-link-icon">` and the label in a
+   * `<span class="widget-link-label">`. Favicon src and label come from
+   * resolved metadata, falling back to the Google favicon service keyed by
+   * the URL hostname and the hostname as label. The anchor is built only
+   * after metadata resolution (the typewriter pause is the loading state).
+   * Nodes are built with createElement/textContent only; any failure
+   * returns null and drops the placeholder.
+   */
+  async function renderLink(widget, ctx) {
+    try {
+      var url = widget.url;
+      if (typeof url !== "string" || url === "") return null;
+
+      var meta = null;
+      if (
+        typeof ctx === "object" &&
+        ctx !== null &&
+        typeof ctx.resolveLinkMeta === "function"
+      ) {
+        try {
+          meta = await ctx.resolveLinkMeta(url);
+        } catch (error) {
+          meta = null;
+        }
+      }
+
+      // Untrusted input: a malformed URL must not throw here. Fall back to
+      // the raw URL's first segment when parsing fails.
+      var hostname;
+      try {
+        hostname = new URL(url).hostname;
+      } catch (error) {
+        hostname = url.split("/")[0] || url;
+      }
+
+      var anchor = document.createElement("a");
+      anchor.className = "widget-link";
+      anchor.href = url;
+      anchor.target = "_blank";
+      anchor.rel = "noopener noreferrer";
+      anchor.title = url;
+
+      var icon = document.createElement("img");
+      icon.className = "widget-link-icon";
+      icon.alt = "";
+      icon.loading = "lazy";
+      icon.referrerPolicy = "no-referrer";
+      icon.src =
+        (meta && meta.iconUrl) ||
+        "https://www.google.com/s2/favicons?domain=" + hostname + "&sz=64";
+
+      var label = document.createElement("span");
+      label.className = "widget-link-label";
+      label.textContent = (meta && meta.label) || hostname;
+
+      anchor.append(icon, label);
+      return anchor;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  window.PortfolioWidgets.register("link", renderLink);
+
+  /**
    * Types one text segment into an already-attached Text node (nodeValue
    * only), mirroring streamText's 8ms/16ms stepping and the instant
    * prefers-reduced-motion path. Splitting each segment into its own node
@@ -429,6 +547,10 @@
   }
 
   function init() {
+    // W5: install the real link-meta resolver (worker-backed, cached) once,
+    // before any reply can render; the module-load default resolves null.
+    setLinkMetaResolver(resolveLinkMeta);
+
     var root = document.getElementById(HOOK_ROOT_ID);
     if (!root) return;
 
