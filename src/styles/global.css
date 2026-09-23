@@ -595,6 +595,93 @@
     height: auto;
   }
 
+  /* Inline thread widget — project: card estilo Telegram (bloque).
+     100% de ancho en móvil, max-width en desktop, centrada; chrome
+     monocromo con la imagen OG como único color. */
+  .widget-card {
+    display: block;
+    width: 100%;
+    max-width: 30rem;
+    margin: 1.25rem auto;
+    background-color: #ffffff;
+    border: 1px solid var(--color-line);
+    border-radius: 10px;
+    box-shadow: 0 1px 5px rgb(0 0 0 / 0.12);
+    color: var(--color-ink);
+    text-decoration: none;
+    overflow: hidden;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  a.widget-card:hover,
+  a.widget-card:focus-visible {
+    border-color: var(--color-ink-muted);
+    box-shadow: 0 2px 9px rgb(0 0 0 / 0.18);
+  }
+
+  .widget-card-media {
+    display: block;
+  }
+
+  .widget-card-image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .widget-card-body {
+    display: block;
+    padding: 0.85rem 1rem 0.4rem;
+  }
+
+  .widget-card-title {
+    display: block;
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+  }
+
+  .widget-card-description {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-top: 0.3rem;
+    font-family: var(--font-serif);
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: var(--color-ink-muted);
+  }
+
+  .widget-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.6rem;
+    padding: 0.55rem 1rem 0.7rem;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .widget-card-icon {
+    width: 15px;
+    height: 15px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .widget-card-domain {
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+  }
+
   .ask-user {
     margin-block-start: 1rem;
   }
