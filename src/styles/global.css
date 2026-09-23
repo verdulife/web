@@ -391,11 +391,15 @@
      the footer: mono uppercase buttons, active one inked and underlined. */
   .site-menu-theme {
     display: flex;
-    gap: 1.5rem;
+    justify-content: center;
+    gap: 2rem;
     margin-top: 2.25rem;
   }
 
   .theme-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
     background: transparent;
     border: 0;
     padding: 0;
@@ -417,6 +421,12 @@
     color: var(--color-ink);
     text-decoration: underline;
     text-underline-offset: 3px;
+  }
+
+  .theme-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
   }
 
   @media (min-width: 48rem) {

@@ -123,9 +123,35 @@ const currentYear = new Date().getFullYear();
           </ul>
 
           <nav class="site-menu-theme" aria-label="Tema de la interfaz">
-            <button type="button" class="theme-button" data-theme-mode="auto" aria-pressed="false">Auto</button>
-            <button type="button" class="theme-button" data-theme-mode="light" aria-pressed="false">Claro</button>
-            <button type="button" class="theme-button" data-theme-mode="dark" aria-pressed="false">Oscuro</button>
+            <button type="button" class="theme-button" data-theme-mode="auto" aria-pressed="false">
+              <svg class="theme-icon" viewBox="0 0 16 16" aria-hidden="true">
+                <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.4" />
+                <path d="M8 2 a6 6 0 0 1 0 12 z" fill="currentColor" />
+              </svg>
+              Auto
+            </button>
+            <button type="button" class="theme-button" data-theme-mode="light" aria-pressed="false">
+              <svg class="theme-icon" viewBox="0 0 16 16" aria-hidden="true">
+                <circle cx="8" cy="8" r="3.2" fill="none" stroke="currentColor" stroke-width="1.4" />
+                <g stroke="currentColor" stroke-width="1.2" stroke-linecap="round">
+                  <line x1="8" y1="1.2" x2="8" y2="2.8" />
+                  <line x1="8" y1="13.2" x2="8" y2="14.8" />
+                  <line x1="1.2" y1="8" x2="2.8" y2="8" />
+                  <line x1="13.2" y1="8" x2="14.8" y2="8" />
+                  <line x1="3.2" y1="3.2" x2="4.4" y2="4.4" />
+                  <line x1="11.6" y1="11.6" x2="12.8" y2="12.8" />
+                  <line x1="3.2" y1="12.8" x2="4.4" y2="11.6" />
+                  <line x1="11.6" y1="4.4" x2="12.8" y2="3.2" />
+                </g>
+              </svg>
+              Claro
+            </button>
+            <button type="button" class="theme-button" data-theme-mode="dark" aria-pressed="false">
+              <svg class="theme-icon" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M9.8 1.8 A6 6 0 1 0 14.2 10 A4.9 4.9 0 0 1 9.8 1.8 Z" fill="currentColor" />
+              </svg>
+              Oscuro
+            </button>
           </nav>
 
           <p class="site-menu-footer">
