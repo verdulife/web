@@ -39,6 +39,149 @@
   /** Display cap for widget labels: longer names are elided with “…” (full text stays in the title). */
   var MAX_WIDGET_LABEL_CHARS = 20;
 
+  /**
+   * R1 — conversation persistence across page navigations.
+   *
+   * The site is static (Astro): navigating to /sobre-mi is a full page load
+   * and module state dies with it. The thread is persisted to sessionStorage
+   * (per-tab, cleared when the tab closes): the messages array (assistant
+   * entries carrying the `widgets` descriptors that ride along with the
+   * reply), plus the thread's scroll ratio so a restored conversation lands
+   * where it was left. Storage shape:
+   *   { v: 1, messages: [{ role, content, widgets? }], scrollRatio: number }
+   *
+   * Save points: after every completed user-visible turn (the user message
+   * is saved right after it is appended, so it survives even when the
+   * request never answers; the assistant message is saved once its turn has
+   * finished mounting) and on `pagehide` (covers navigation, reload and
+   * back/forward). Every sessionStorage access is try/caught: quota or
+   * private-mode failures degrade to a silent no-op and the chat keeps
+   * working in-memory.
+   */
+  var STORAGE_KEY = "portfolio-chat-state-v1";
+  /** Restore cap: only the last 30 messages are kept on load/save. */
+  var MAX_STORED_MESSAGES = 30;
+  /** Per-message cap for restored widget descriptors (worker caps replies at 4). */
+  var MAX_STORED_WIDGETS_PER_MESSAGE = 6;
+
+  /**
+   * Normalizes a persisted scroll ratio to a number in [0, 1]: a non-finite
+   * value (NaN/Infinity), a negative value and a value above 1 clamp to the
+   * nearest valid boundary.
+   */
+  function clampRatio(ratio) {
+    if (typeof ratio !== "number" || !Number.isFinite(ratio)) return 0;
+    if (ratio < 0) return 0;
+    if (ratio > 1) return 1;
+    return ratio;
+  }
+
+  /**
+   * Reads the thread's current scroll position as a ratio of the scrollable
+   * range, clamped to [0, 1]. A thread that is not scrollable (scrollHeight
+   * <= clientHeight) reads 0; NaN/negative scrollTop guard to 0 as well.
+   */
+  function currentScrollRatio(thread) {
+    var max = thread.scrollHeight - thread.clientHeight;
+    if (!(max > 0)) return 0;
+    return clampRatio(thread.scrollTop / max);
+  }
+
+  /**
+   * Validates one persisted message. Returns a normalized entry only when
+   * role is user|assistant and content is a non-empty string. Assistant
+   * entries keep a sanitized `widgets` array: plain objects with a numeric
+   * index and a non-empty string type, capped at
+   * MAX_STORED_WIDGETS_PER_MESSAGE per message (other fields of a kept
+   * entry pass through untouched; the renderers re-validate their own
+   * inputs). Invalid entries return null and are skipped by loadChatState.
+   */
+  function sanitizeStoredMessage(raw) {
+    if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return null;
+    var role = raw.role;
+    var content = raw.content;
+    if (role !== "user" && role !== "assistant") return null;
+    if (typeof content !== "string" || content === "") return null;
+    if (role !== "assistant") return { role: "user", content: content };
+
+    var widgets = [];
+    if (Array.isArray(raw.widgets)) {
+      for (
+        var i = 0;
+        i < raw.widgets.length && widgets.length < MAX_STORED_WIDGETS_PER_MESSAGE;
+        i += 1
+      ) {
+        var widget = raw.widgets[i];
+        if (
+          typeof widget === "object" &&
+          widget !== null &&
+          !Array.isArray(widget) &&
+          typeof widget.index === "number" &&
+          Number.isFinite(widget.index) &&
+          typeof widget.type === "string" &&
+          widget.type !== ""
+        ) {
+          widgets.push(widget);
+        }
+      }
+    }
+    return { role: "assistant", content: content, widgets: widgets };
+  }
+
+  function removeStoredChatState() {
+    try {
+      window.sessionStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      // Quota/private mode: nothing to clean; silence.
+    }
+  }
+
+  /**
+   * Reads and validates the persisted state. Returns null (removing the
+   * stored value) when anything is missing, malformed or unusable: no key,
+   * unparseable JSON, wrong shape/v, no messages array, or messages that
+   * sanitize to nothing. Valid state is capped to the last
+   * MAX_STORED_MESSAGES entries and returned as
+   * `{ v: 1, messages, scrollRatio }` (scrollRatio clamped to [0, 1]).
+   */
+  function loadChatState() {
+    var raw;
+    try {
+      raw = window.sessionStorage.getItem(STORAGE_KEY);
+    } catch (error) {
+      return null;
+    }
+    if (raw === null) return null;
+
+    var parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (error) {
+      removeStoredChatState();
+      return null;
+    }
+
+    if (typeof parsed !== "object" || parsed === null || parsed.v !== 1) {
+      removeStoredChatState();
+      return null;
+    }
+
+    var messages = [];
+    if (Array.isArray(parsed.messages)) {
+      var tail = parsed.messages.slice(-MAX_STORED_MESSAGES);
+      for (var i = 0; i < tail.length; i += 1) {
+        var message = sanitizeStoredMessage(tail[i]);
+        if (message) messages.push(message);
+      }
+    }
+    if (messages.length === 0) {
+      removeStoredChatState();
+      return null;
+    }
+
+    return { v: 1, messages: messages, scrollRatio: clampRatio(parsed.scrollRatio) };
+  }
+
   var INTRO_TEXT =
     "Hola, soy Albert Verdú, desarrollador web y diseñador gráfico con más de 20 años de experiencia. ¿En qué puedo ayudarte?";
 
@@ -798,6 +941,64 @@
   }
 
   /**
+   * Shared paragraph lifecycle (P4 block-widget support, R1 restore reuse).
+   *
+   * Text and inline widget nodes accumulate in one lazily-created
+   * `.ask-paragraph`; a block widget closes the current paragraph (discarding
+   * it when empty) and lands as a flow-level sibling of the paragraphs; the
+   * next text segment opens a fresh paragraph, so text flows above and below
+   * the block with valid HTML. A dropped node (null) never closes the
+   * paragraph, so the surrounding text stays merged. `close()` also discards
+   * a trailing empty paragraph.
+   *
+   * Both the streaming path (streamSegments) and the instant restore path
+   * (mountSegmentsInstant) drive exactly this core, so a restored turn has
+   * the identical paragraph/block layout a live streamed one would have.
+   */
+  function createParagraphLifecycle(turn) {
+    var paragraph = null;
+
+    function createParagraph() {
+      var p = document.createElement("p");
+      p.className = "ask-paragraph";
+      turn.append(p);
+      return p;
+    }
+
+    // Returns the current paragraph, creating it lazily on first use.
+    function current() {
+      if (!paragraph) paragraph = createParagraph();
+      return paragraph;
+    }
+
+    // Closes the open paragraph. An empty one is discarded (never leaves a
+    // blank <p> before/after a block node or at the end of the turn).
+    function close() {
+      if (!paragraph) return;
+      if (paragraph.childNodes.length === 0) paragraph.remove();
+      paragraph = null;
+    }
+
+    /**
+     * Mounts a rendered widget node at its flow level: block widgets close
+     * the current paragraph and append directly to the turn; inline widgets
+     * append inside the current paragraph. A null node is dropped without
+     * touching the paragraph state.
+     */
+    function mountWidget(widget, node) {
+      if (!node) return;
+      if (isBlockWidget(widget.type)) {
+        close();
+        turn.append(node);
+      } else {
+        current().append(node);
+      }
+    }
+
+    return { current: current, close: close, mountWidget: mountWidget };
+  }
+
+  /**
    * Streams split segments into `turn` in order, managing the paragraph
    * lifecycle (P4 block-widget support).
    *
@@ -818,28 +1019,12 @@
   function streamSegments(turn, segments, thread) {
     return new Promise(function (resolve) {
       var reduced = prefersReducedMotion();
-      var paragraph = null;
+      var lifecycle = createParagraphLifecycle(turn);
       var index = 0;
-
-      function currentParagraph() {
-        if (paragraph) return paragraph;
-        paragraph = document.createElement("p");
-        paragraph.className = "ask-paragraph";
-        turn.append(paragraph);
-        return paragraph;
-      }
-
-      // Closes the open paragraph. An empty one is discarded (never leaves a
-      // blank <p> before/after a block node or at the end of the turn).
-      function closeParagraph() {
-        if (!paragraph) return;
-        if (paragraph.childNodes.length === 0) paragraph.remove();
-        paragraph = null;
-      }
 
       function next() {
         if (index >= segments.length) {
-          closeParagraph();
+          lifecycle.close();
           scrollThreadBottom(thread);
           resolve();
           return;
@@ -848,7 +1033,7 @@
         index += 1;
 
         if (segment.kind === "text") {
-          var target = currentParagraph();
+          var target = lifecycle.current();
           var textNode = document.createTextNode("");
           target.append(textNode);
           if (reduced) {
@@ -863,17 +1048,7 @@
 
         // Widget segment: pause typing until the node resolves, then insert.
         renderWidgetNode(segment.widget).then(function (node) {
-          if (!node) {
-            // Dropped placeholder: nothing to insert, text stays merged.
-            next();
-            return;
-          }
-          if (isBlockWidget(segment.widget.type)) {
-            closeParagraph();
-            turn.append(node);
-          } else {
-            currentParagraph().append(node);
-          }
+          lifecycle.mountWidget(segment.widget, node);
           scrollThreadBottom(thread);
           next();
         });
@@ -881,6 +1056,32 @@
 
       next();
     });
+  }
+
+  /**
+   * R1 — mounts split segments into `turn` instantly (no typewriter, no
+   * timers), awaiting each widget render in sequence. Pushes segments through
+   * the same paragraph lifecycle as streamSegments, so the restored DOM
+   * matches what a live streamed turn would have produced: text above and
+   * below block widgets, inline widgets inside the paragraph, dropped (null)
+   * placeholders merged into the text, no empty paragraphs.
+   */
+  async function mountSegmentsInstant(turn, segments) {
+    var lifecycle = createParagraphLifecycle(turn);
+
+    for (var i = 0; i < segments.length; i += 1) {
+      var segment = segments[i];
+      if (segment.kind === "text") {
+        lifecycle.current().append(document.createTextNode(segment.text));
+        continue;
+      }
+      // Widget: renderers never throw (failures yield null) and the
+      // placeholder is dropped with the surrounding text merged.
+      var node = await renderWidgetNode(segment.widget);
+      lifecycle.mountWidget(segment.widget, node);
+    }
+
+    lifecycle.close();
   }
 
   function init() {
@@ -915,6 +1116,23 @@
 
     var history = [];
     var busy = false;
+
+    /**
+     * R1 — persists the thread to sessionStorage ({ v, messages, scrollRatio },
+     * see the module-level storage section). Best-effort: quota or private-mode
+     * failures degrade to a silent no-op and the chat keeps working in-memory.
+     * Called after every completed user-visible turn and on pagehide.
+     */
+    function saveChatState() {
+      try {
+        window.sessionStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ v: 1, messages: history, scrollRatio: currentScrollRatio(thread) })
+        );
+      } catch (error) {
+        // Quota/private mode/storage disabled: persistence is best-effort.
+      }
+    }
 
     /**
      * Appends an assistant turn and streams its reply into one or more
@@ -1030,6 +1248,7 @@
       turn.append(ask);
       thread.append(turn);
       scrollThreadBottom(thread);
+      return turn;
     }
 
     function showError(code, providerMessage) {
@@ -1076,8 +1295,13 @@
         // first character of the reply is typed. The typewriter keeps the
         // thread pinned to the bottom on its own from here on.
         setThinking(false);
-        history.push({ role: "assistant", content: response.reply });
+        // Assistant entries carry the widget descriptors that ride along
+        // with the reply (R1: they are persisted with the message and used
+        // to re-render widgets on restore).
+        history.push({ role: "assistant", content: response.reply, widgets: response.widgets ?? [] });
         await buildAssistantTurn(response.reply, response.widgets ?? []);
+        // Turn fully mounted: the visible state is now durable.
+        saveChatState();
       } catch (error) {
         var failure = readFailure(error);
         showError(failure.code, failure.message);
@@ -1097,6 +1321,8 @@
 
       history.push({ role: "user", content: trimmed });
       appendUserTurn(trimmed);
+      // The user message survives even if the request never answers.
+      saveChatState();
       input.value = "";
       await runRequest();
     }
@@ -1130,6 +1356,84 @@
       });
     }
 
+    /**
+     * R1 — assembles a persisted assistant message as a full `.ask-assistant`
+     * turn instantly: paragraphs land complete (no typewriter) and widget
+     * placeholders resolve in sequence through the same paragraph lifecycle
+     * the live streaming path uses. Returns the turn element.
+     */
+    async function appendAssistantTurnInstant(message) {
+      var turn = document.createElement("div");
+      turn.className = "ask-assistant";
+
+      thread.append(turn);
+      scrollThreadBottom(thread);
+
+      var widgets = Array.isArray(message.widgets) ? message.widgets : [];
+      var segments = splitReply(message.content, widgets);
+      await mountSegmentsInstant(turn, segments);
+      return turn;
+    }
+
+    /**
+     * R1 — rebuilds the thread from persisted sessionStorage state when one
+     * exists (run instead of streamIntro). The greeting is restored as a
+     * plain first turn and every stored message is mounted instantly, then
+     * the suggestions widget lands at the bottom and the saved scroll
+     * position is restored once layout settles. `history` is replaced by the
+     * restored messages, so the conversation continues exactly where it was
+     * left.
+     */
+    function restoreThread(state) {
+      history = state.messages;
+
+      // The server-rendered intro (no-JS/SEO resilience) is dropped like in
+      // streamIntro; the greeting renders instantly instead of streaming.
+      thread.replaceChildren();
+
+      var introTurn = document.createElement("div");
+      introTurn.className = "ask-assistant";
+      var introParagraph = document.createElement("p");
+      introParagraph.className = "ask-paragraph ask-paragraph--first";
+      introParagraph.textContent = INTRO_TEXT;
+      introTurn.append(introParagraph);
+      thread.append(introTurn);
+
+      var lastTurn = introTurn;
+      setBusy(true);
+
+      (async function () {
+        for (var i = 0; i < history.length; i += 1) {
+          var message = history[i];
+          if (message.role === "user") {
+            lastTurn = appendUserTurn(message.content);
+          } else {
+            lastTurn = await appendAssistantTurnInstant(message);
+          }
+        }
+
+        // The suggestions wrap lives at the bottom, as it would in a live
+        // chat.
+        suggestionsWrap = buildSuggestions();
+        lastTurn.after(suggestionsWrap);
+        scrollThreadBottom(thread);
+
+        // All widget renders and the suggestions insert are done: restore
+        // the saved scroll position at the next frame. A thread that is not
+        // scrollable yields 0 naturally.
+        requestAnimationFrame(function () {
+          var max = thread.scrollHeight - thread.clientHeight;
+          thread.scrollTop = max > 0 ? clampRatio(state.scrollRatio) * max : 0;
+        });
+
+        setBusy(false);
+        input.focus();
+      })();
+    }
+
+    // R1: the conversation survives navigation in this tab.
+    window.addEventListener("pagehide", saveChatState);
+
     form.addEventListener("submit", function (event) {
       event.preventDefault();
 
@@ -1142,7 +1446,15 @@
       void ask(question);
     });
 
-    streamIntro();
+    // R1: restore the persisted conversation when one exists, otherwise
+    // greet a fresh visitor. A null/empty state falls through to the
+    // unchanged fresh-visit path.
+    var restored = loadChatState();
+    if (restored === null || restored.messages.length === 0) {
+      streamIntro();
+    } else {
+      void restoreThread(restored);
+    }
   }
 
   init();
