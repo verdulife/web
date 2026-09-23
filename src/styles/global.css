@@ -710,8 +710,8 @@
     max-width: var(--content-max);
     margin-left: auto;
     font-family: var(--font-serif);
-    font-size: 1.0625rem;
-    line-height: 1.65;
+    font-size: 1.25rem;
+    line-height: 1.5;
     color: var(--color-ink);
   }
 
