@@ -7,7 +7,7 @@ Personal/professional portfolio with an integrated conversational AI layer: **a 
 ## Stack
 
 - **Frontend**: Astro 5 + TypeScript + Tailwind CSS v4 (static output; HTML-first conventional pages)
-- **AI backend**: Cloudflare Worker (`worker/`) + Gemini API (free tier, `gemini-2.5-flash`) — browser → Worker → Gemini (no direct provider access; legacy Workers AI mode selectable via `--var AI_PROVIDER:cloudflare`)
+- **AI backend**: Cloudflare Worker (`worker/`) + Gemini API (free tier, `gemini-3.6-flash`) — browser → Worker → Gemini (no direct provider access; legacy Workers AI mode selectable via `--var AI_PROVIDER:cloudflare`)
 - **Knowledge**: Markdown in `knowledge/` (Spanish), single source of truth for the pages AND the AI (stored behind a `KnowledgeProvider` interface: GitHub raw in production, bundled snapshot for local/dev)
 
 ## Repo layout
@@ -50,7 +50,7 @@ Contract (request/response/errors) is documented in `odd/tasks/portfolio-ai.md` 
 
 ## Gemini provider (chat AI)
 
-El chat del worker usa la **Gemini API free tier** por defecto (modelo `gemini-2.5-flash` a través del endpoint OpenAI-compatible de Gemini). Cuota estimada: ~10–15 RPM por proyecto; una pregunta del chat cuesta hasta **4 llamadas al modelo** (3 turnos de herramienta + settle). Los números reales de cuota no son públicos: verifícalos en [AI Studio](https://aistudio.google.com/rate-limit) después de crear la key.
+El chat del worker usa la **Gemini API free tier** por defecto (modelo `gemini-3.6-flash` a través del endpoint OpenAI-compatible de Gemini). Nota: `gemini-2.5-flash` quedó **retirado** para cuentas nuevas (404 "no longer available to new users"); verificado en vivo 2026-02. Una pregunta del chat cuesta hasta **4 llamadas al modelo** (3 turnos de herramienta + settle). Observado en vivo: el tier gratuito de `gemini-3.6-flash` corta en **~20 requests por ventana** (429 con "retry in Xs" que no se recupera en minutos — revisar el techo real en [AI Studio](https://aistudio.google.com/rate-limit) con tu key antes de decidir producción).
 
 ### Requisitos
 
@@ -70,7 +70,7 @@ cd worker && wrangler dev                       # o `bun run worker:dev:local` p
 cd worker && wrangler secret put GEMINI_API_KEY
 ```
 
-`wrangler.toml` ya trae por defecto `AI_PROVIDER = "gemini"` y `MODEL_ID = "gemini-2.5-flash"`. Al desplegar, recuerda: `ALLOWED_ORIGINS` debe listar el dominio real y, si el frontend está en Vercel, apuntar `PUBLIC_WORKER_URL` al worker desplegado.
+`wrangler.toml` ya trae por defecto `AI_PROVIDER = "gemini"` y `MODEL_ID = "gemini-3.6-flash"`. Al desplegar, recuerda: `ALLOWED_ORIGINS` debe listar el dominio real y, si el frontend está en Vercel, apuntar `PUBLIC_WORKER_URL` al worker desplegado.
 
 ### Cambiar de proveedor
 

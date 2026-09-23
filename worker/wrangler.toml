@@ -9,13 +9,13 @@ binding = "AI"
 # AI provider default. GEMINI_API_KEY is a SECRET and never lives here: local
 # dev uses worker/.dev.vars (gitignored), production uses
 # `wrangler secret put GEMINI_API_KEY`. The committed defaults select the Gemini
-# provider (gemini-2.5-flash through the OpenAI-compatible endpoint). The other
+# provider (gemini-3.6-flash through the OpenAI-compatible endpoint). The other
 # modes are CLI-only switches (`wrangler dev --var AI_PROVIDER:...`), never
 # changed in this committed file:
 #   mock       -> MockAIProvider (widget/UI testing, no model API)
 #   cloudflare -> legacy Workers AI binding (env.AI)
 AI_PROVIDER = "gemini"
-MODEL_ID = "gemini-2.5-flash"
+MODEL_ID = "gemini-3.6-flash"
 GITHUB_REPO = ""
 GITHUB_REF = "main"
 GITHUB_TOKEN = ""
