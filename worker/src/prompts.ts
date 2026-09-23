@@ -23,8 +23,15 @@ const TOOL_NOTE = [
   "Si una pregunta no encaja con el índice, responde con un redireccionamiento cortés antes de consultar nada.",
 ].join("\n");
 
+const WIDGET_NOTE = [
+  "Puedes insertar widgets inline en tus respuestas con tokens [[widget:…]] colocados en el punto exacto del texto donde deben aparecer:",
+  "- [[widget:link url=\"https://…\" label=\"Opcional\"]] — cita un enlace; el lector verá el nombre de la página con su favicon, nunca la URL cruda.",
+  "- [[widget:project slug=\"<id_del_documento_de_proyecto>\"]] — muestra una tarjeta del proyecto; úsalo cuando menciones un proyecto del porfolio.",
+  "Reglas: no escribas URLs sueltas cuando puedas usar un widget; escribe el token inline, donde el enlace encaje en la frase; máximo 4 widgets por respuesta; usa siempre URLs completas con https://; si pones label, sé fiel al nombre real de la página.",
+].join("\n");
+
 /** Stable prefix invariant: persona + scope rules are constant; only index lines follow. */
 export function buildSystemPrompt(index: KnowledgeIndexEntry[]): string {
   const indexLines = index.map((entry) => `${entry.id} — ${entry.description}`);
-  return [PERSONA_INTRO, SCOPE_RULES, "CONOCIMIENTO DISPONIBLE:", ...indexLines, TOOL_NOTE].join("\n\n");
+  return [PERSONA_INTRO, SCOPE_RULES, "CONOCIMIENTO DISPONIBLE:", ...indexLines, TOOL_NOTE, WIDGET_NOTE].join("\n\n");
 }

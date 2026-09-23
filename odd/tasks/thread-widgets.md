@@ -93,9 +93,15 @@ Worker normalizes the model reply before returning:
 
 - [x] W1 — done: `GET /api/link-meta` endpoint (fetch+parse, security, cache).
 - [x] W2 — done: widget token parser + bare-URL detection + normalization in chat response.
-- [ ] W3 … W8 pending. Next: W3.
+- [x] W3 — done: system prompt documents widget syntax + rules.
+- [ ] W4 … W8 pending. Next: W4.
 
 ## Verification evidence
+
+W3 (prompt, verified by gentle-ai-verify):
+
+- `cd worker && bun run check` → exit 0; `bun run test` → 7 files / 138 tests pass (W1/W2 regression green).
+- `buildSystemPrompt` joins `PERSONA_INTRO → SCOPE_RULES → CONOCIMIENTO DISPONIBLE → index → TOOL_NOTE → WIDGET_NOTE`; WIDGET_NOTE documents both token forms, inline placement rule, and the 4-widget cap. No test references `prompts` symbols; no breakage.
 
 W2 (worker vitest + `tsc --noEmit`):
 
