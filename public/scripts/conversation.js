@@ -227,9 +227,13 @@
    * per-type registry into the streamed turn.
    *
    * Public API (window.PortfolioWidgets):
-   *   PortfolioWidgets.register(type, renderer)
+   *   PortfolioWidgets.register(type, renderer, options?)
    *     Stores a plain-function renderer under a non-empty string `type`;
-   *     returns nothing.
+   *     returns nothing. `options.block === true` marks the type as a block
+   *     widget (see below); the option is optional and defaults to inline.
+   *   PortfolioWidgets.isBlockWidget(type)
+   *     True when `type` is registered with `{ block: true }`; used by the
+   *     streaming logic to decide paragraph closing.
    *   PortfolioWidgets.setLinkMetaResolver(fn)
    *     Internal hook for the link renderer (W5 registers it). Stores a
    *     callable `(url, signal?) => Promise<{ label, iconUrl } | null>`. The
@@ -246,6 +250,16 @@
    *     unregistered type, or a throwing renderer drops the placeholder and
    *     the surrounding text flows on.
    *
+   * Inline vs block widgets. An inline widget (block=false, the default) is
+   * appended inside the current `.ask-paragraph` together with the
+   * surrounding text. A block widget (registered with `{ block: true }`) is
+   * laid out as a flow-level sibling: the current paragraph is closed (and
+   * discarded when still empty), the node is appended directly to the
+   * `.ask-assistant` turn, and the next text segment opens a fresh paragraph.
+   * Text therefore flows above and below the block node with valid HTML. A
+   * block placeholder whose renderer drops the node (null) does not close the
+   * paragraph, so the surrounding text stays merged.
+   *
    * Grammar is strict: only `[[widget:<digits>]]` counts as a placeholder;
    * everything else stays as text. A placeholder index with no matching entry
    * in the `widgets` array is dropped together with its marker, merging the
@@ -261,9 +275,24 @@
   };
   var linkMetaResolver = defaultLinkMetaResolver;
 
-  function register(type, renderer) {
+  function register(type, renderer, options) {
     if (typeof type !== "string" || type === "" || typeof renderer !== "function") return;
-    widgetRegistry[type] = renderer;
+    widgetRegistry[type] = {
+      fn: renderer,
+      block: !!(options && options.block),
+    };
+  }
+
+  /**
+   * True when `type` is registered as a block widget. Unknown or inline types
+   * return false. Block-ness is a property of the registered type (not of the
+   * individual widget entry), so every widget of that type lays out the same
+   * way.
+   */
+  function isBlockWidget(type) {
+    if (typeof type !== "string" || type === "") return false;
+    var entry = widgetRegistry[type];
+    return !!entry && entry.block === true;
   }
 
   function setLinkMetaResolver(fn) {
@@ -330,12 +359,12 @@
     if (typeof widget !== "object" || widget === null) return null;
     var type = widget.type;
     if (typeof type !== "string" || type === "") return null;
-    var renderer = widgetRegistry[type];
-    if (typeof renderer !== "function") return null;
+    var entry = widgetRegistry[type];
+    if (!entry || typeof entry.fn !== "function") return null;
 
     var node;
     try {
-      node = await renderer(widget, { resolveLinkMeta: linkMetaResolver });
+      node = await entry.fn(widget, { resolveLinkMeta: linkMetaResolver });
     } catch (error) {
       return null;
     }
@@ -358,6 +387,7 @@
 
   window.PortfolioWidgets = {
     register: register,
+    isBlockWidget: isBlockWidget,
     setLinkMetaResolver: setLinkMetaResolver,
     splitReply: splitReply,
     truncateLabel: truncateLabel,
@@ -510,13 +540,13 @@
    * I4 — image widget renderer.
    *
    * Renders an image widget as `<span class="widget-image">` holding an
-   * `<img class="widget-image-img">` and an optional
-   * `<span class="widget-image-caption">`. The wrapper is a span (phrasing
-   * content, valid inside the `.ask-paragraph` `<p>`) styled as a block figure
-   * by CSS (I5); `figure`/`figcaption` are not allowed inside `<p>`. `src`
+   * `<img class="widget-image-img">`. The type is registered as a block
+   * widget (P4): the engine closes the current text paragraph before it and
+   * opens a fresh one after it, so the wrapper is a real flow-level sibling
+   * of the `.ask-paragraph` elements while CSS (I5) keeps the same polaroid
+   * look. `src`
    * must be a safe site-relative path and `alt` a non-empty string — anything
-   * invalid drops the placeholder (returns null). `caption`, when present and
-   * non-empty, is set via textContent only. Nodes are built with
+   * invalid drops the placeholder (returns null). Nodes are built with
    * createElement/textContent only; no metadata fetch is needed.
    */
   function renderImage(widget, _ctx) {
@@ -542,7 +572,197 @@
     return figure;
   }
 
-  window.PortfolioWidgets.register("image", renderImage);
+  window.PortfolioWidgets.register("image", renderImage, { block: true });
+
+  /**
+   * P5 — project card widget: worker-backed project metadata + renderer.
+   *
+   * resolveProjectMeta(slug) resolves the card data from the worker's
+   * `GET /api/project?slug=` endpoint. Results are cached in-session per
+   * slug the same way resolveLinkMeta caches by URL: the in-flight promise
+   * is stored in the Map, so concurrent calls for the same slug share one
+   * fetch. Every failure path (network error, 4s timeout, non-ok status,
+   * malformed body) resolves `null`; this function never throws.
+   */
+  var projectMetaCache = new Map();
+
+  async function resolveProjectMeta(slug) {
+    try {
+      var cached = projectMetaCache.get(slug);
+      if (cached) return cached;
+
+      // Same worker base URL resolution as postChat / resolveLinkMeta.
+      var workerUrl = window.__PORTFOLIO_WORKER_URL ?? WORKER_URL_FALLBACK;
+      var pending = (async function () {
+        try {
+          var response = await fetch(workerUrl + "/api/project?slug=" + encodeURIComponent(slug), {
+            headers: { Accept: "application/json" },
+            signal: AbortSignal.timeout(4000),
+          });
+          if (!response.ok) return null;
+          var body = await response.json();
+          if (
+            typeof body === "object" &&
+            body !== null &&
+            typeof body.title === "string" &&
+            typeof body.description === "string"
+          ) {
+            return {
+              slug: typeof body.slug === "string" && body.slug !== "" ? body.slug : slug,
+              title: body.title,
+              description: body.description,
+              url: typeof body.url === "string" && body.url !== "" ? body.url : undefined,
+              domain:
+                typeof body.domain === "string" && body.domain !== "" ? body.domain : undefined,
+              image: typeof body.image === "string" && body.image !== "" ? body.image : undefined,
+              siteName:
+                typeof body.siteName === "string" && body.siteName !== "" ? body.siteName : undefined,
+              iconUrl:
+                typeof body.iconUrl === "string" && body.iconUrl !== "" ? body.iconUrl : undefined,
+            };
+          }
+          return null;
+        } catch (error) {
+          return null;
+        }
+      })();
+
+      projectMetaCache.set(slug, pending);
+      return pending;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Extracts the hostname from `url` without throwing; returns "" when the
+   * URL does not parse (untrusted input must never break a card render).
+   */
+  function hostnameFromUrl(url) {
+    try {
+      return new URL(url).hostname;
+    } catch (error) {
+      return "";
+    }
+  }
+
+  /**
+   * P5 — project card renderer (Telegram-share style, block layout).
+   *
+   * Builds a card from resolved project metadata: an optional media image,
+   * a title/description body, and a footer with favicon + domain label. The
+   * outer element is an `<a class="widget-card">` when the project URL is a
+   * non-empty http(s) string, otherwise a static
+   * `<span class="widget-card widget-card--static">`. Fields absent from the
+   * resolved data are omitted (no boxes with empty content); the footer
+   * domain falls back `siteName` → `domain` → hostname-from-url, and the
+   * favicon falls back to the Google s2 service keyed by hostname. Any
+   * unexpected error, a bad slug, or failed metadata resolution returns null
+   * and drops the placeholder. Nodes are built with createElement/textContent
+   * only — never innerHTML.
+   */
+  async function renderProject(widget, _ctx) {
+    try {
+      if (typeof widget !== "object" || widget === null) return null;
+      var slug = typeof widget.slug === "string" ? widget.slug : "";
+      if (slug === "" || !/^[a-z0-9-]+$/.test(slug)) return null;
+
+      var meta = await resolveProjectMeta(slug);
+      if (meta === null) return null;
+
+      var url = meta.url;
+      var isHttpUrl =
+        typeof url === "string" &&
+        (url.slice(0, 8) === "https://" || url.slice(0, 7) === "http://");
+      var host = typeof url === "string" ? hostnameFromUrl(url) : "";
+      var footerDomain = meta.siteName || meta.domain || host;
+
+      var card;
+      if (isHttpUrl) {
+        card = document.createElement("a");
+        card.className = "widget-card";
+        card.href = url;
+        card.target = "_blank";
+        card.rel = "noopener noreferrer";
+      } else {
+        card = document.createElement("span");
+        card.className = "widget-card widget-card--static";
+      }
+
+      // Optional media block: only when a usable absolute image exists.
+      var image = meta.image;
+      if (
+        typeof image === "string" &&
+        image !== "" &&
+        (image.slice(0, 8) === "https://" || image.slice(0, 7) === "http://")
+      ) {
+        var media = document.createElement("span");
+        media.className = "widget-card-media";
+
+        var mediaImg = document.createElement("img");
+        mediaImg.className = "widget-card-image";
+        mediaImg.src = image;
+        mediaImg.loading = "lazy";
+        mediaImg.decoding = "async";
+        mediaImg.referrerPolicy = "no-referrer";
+        mediaImg.alt = "";
+        media.append(mediaImg);
+
+        card.append(media);
+      }
+
+      var body = document.createElement("span");
+      body.className = "widget-card-body";
+
+      var title = document.createElement("strong");
+      title.className = "widget-card-title";
+      title.textContent = meta.title;
+      body.append(title);
+
+      var description = document.createElement("span");
+      description.className = "widget-card-description";
+      description.textContent = meta.description;
+      body.append(description);
+
+      card.append(body);
+
+      // Footer: favicon (fallback to Google s2 keyed by hostname) + domain.
+      if (typeof footerDomain === "string" && footerDomain !== "") {
+        var footer = document.createElement("span");
+        footer.className = "widget-card-footer";
+
+        var iconDomain = meta.domain || host;
+        var iconSrc = "";
+        if (typeof meta.iconUrl === "string" && meta.iconUrl !== "") {
+          iconSrc = meta.iconUrl;
+        } else if (typeof iconDomain === "string" && iconDomain !== "") {
+          iconSrc = "https://www.google.com/s2/favicons?domain=" + iconDomain + "&sz=64";
+        }
+        if (iconSrc !== "") {
+          var icon = document.createElement("img");
+          icon.className = "widget-card-icon";
+          icon.src = iconSrc;
+          icon.alt = "";
+          icon.loading = "lazy";
+          icon.referrerPolicy = "no-referrer";
+          footer.append(icon);
+        }
+
+        var domainLabel = document.createElement("span");
+        domainLabel.className = "widget-card-domain";
+        domainLabel.textContent = footerDomain;
+        footer.append(domainLabel);
+
+        card.append(footer);
+      }
+
+      return card;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  window.PortfolioWidgets.register("project", renderProject, { block: true });
 
   /**
    * Types one text segment into an already-attached Text node (nodeValue
@@ -578,19 +798,48 @@
   }
 
   /**
-   * Streams split segments into `paragraph` in order. Text segments type
-   * char-by-char into their own Text node; widget segments pause the
-   * typewriter, resolve asynchronously via renderWidgetNode, append the node
-   * when non-null, then continue. With prefers-reduced-motion the text lands
-   * instantly and no timers run; widget nodes still resolve sequentially.
+   * Streams split segments into `turn` in order, managing the paragraph
+   * lifecycle (P4 block-widget support).
+   *
+   * The current `.ask-paragraph` is created lazily on the first text segment
+   * or inline widget: inline nodes and text share one paragraph, exactly as
+   * before. A block widget closes the current paragraph (dropping it when it
+   * holds no content) and appends its node directly to `turn`; the next text
+   * segment then opens a fresh paragraph, so text flows above and below the
+   * block with valid HTML. A block placeholder whose node is dropped (null)
+   * does not close the paragraph, so the surrounding text stays merged.
+   *
+   * Text segments type char-by-char into their own Text node; widget segments
+   * pause the typewriter, resolve asynchronously via renderWidgetNode and
+   * continue. With prefers-reduced-motion the text lands instantly and no
+   * timers run; widget nodes still resolve sequentially. A trailing empty
+   * paragraph is removed before the promise resolves.
    */
-  function streamSegments(paragraph, segments, thread) {
+  function streamSegments(turn, segments, thread) {
     return new Promise(function (resolve) {
       var reduced = prefersReducedMotion();
+      var paragraph = null;
       var index = 0;
+
+      function currentParagraph() {
+        if (paragraph) return paragraph;
+        paragraph = document.createElement("p");
+        paragraph.className = "ask-paragraph";
+        turn.append(paragraph);
+        return paragraph;
+      }
+
+      // Closes the open paragraph. An empty one is discarded (never leaves a
+      // blank <p> before/after a block node or at the end of the turn).
+      function closeParagraph() {
+        if (!paragraph) return;
+        if (paragraph.childNodes.length === 0) paragraph.remove();
+        paragraph = null;
+      }
 
       function next() {
         if (index >= segments.length) {
+          closeParagraph();
           scrollThreadBottom(thread);
           resolve();
           return;
@@ -599,8 +848,9 @@
         index += 1;
 
         if (segment.kind === "text") {
+          var target = currentParagraph();
           var textNode = document.createTextNode("");
-          paragraph.append(textNode);
+          target.append(textNode);
           if (reduced) {
             textNode.nodeValue = segment.text;
             scrollThreadBottom(thread);
@@ -613,10 +863,18 @@
 
         // Widget segment: pause typing until the node resolves, then insert.
         renderWidgetNode(segment.widget).then(function (node) {
-          if (node) {
-            paragraph.append(node);
-            scrollThreadBottom(thread);
+          if (!node) {
+            // Dropped placeholder: nothing to insert, text stays merged.
+            next();
+            return;
           }
+          if (isBlockWidget(segment.widget.type)) {
+            closeParagraph();
+            turn.append(node);
+          } else {
+            currentParagraph().append(node);
+          }
+          scrollThreadBottom(thread);
           next();
         });
       }
@@ -659,20 +917,18 @@
     var busy = false;
 
     /**
-     * Appends an assistant turn and streams its reply into a single
-     * .ask-paragraph (textContent only). Without widgets the previous
-     * single-pass streamText behavior is kept unchanged; with widget segments
-     * the reply streams per segment, pausing the typewriter while each widget
-     * resolves into the paragraph.
+     * Appends an assistant turn and streams its reply into one or more
+     * `.ask-paragraph` elements (textContent only), with block widgets as
+     * flow-level siblings between paragraphs (P4). Without widgets the
+     * previous single-pass streamText behavior is kept unchanged; with widget
+     * segments the reply streams per segment, pausing the typewriter while
+     * each widget resolves (inline widgets stay in the current paragraph,
+     * block widgets close it).
      */
     function buildAssistantTurn(text, widgets) {
       return new Promise(function (resolve) {
         var turn = document.createElement("div");
         turn.className = "ask-assistant";
-
-        var paragraph = document.createElement("p");
-        paragraph.className = "ask-paragraph";
-        turn.append(paragraph);
 
         thread.append(turn);
         scrollThreadBottom(thread);
@@ -684,6 +940,9 @@
         if (untouchedPlainText) {
           // No widget segments and the text was not altered: the unchanged
           // streamText path (byte-for-byte for the no-widget replies).
+          var paragraph = document.createElement("p");
+          paragraph.className = "ask-paragraph";
+          turn.append(paragraph);
           streamText(paragraph, text, thread, function () {
             scrollThreadBottom(thread);
             resolve();
@@ -691,7 +950,7 @@
           return;
         }
 
-        streamSegments(paragraph, segments, thread).then(resolve);
+        streamSegments(turn, segments, thread).then(resolve);
       });
     }
 
