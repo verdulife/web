@@ -546,7 +546,7 @@
 
   .ask-assistant .ask-paragraph--first {
     border-top: 0;
-    padding-top: 0;
+    padding-top: 1.5rem;
   }
 
   .ask-assistant > :first-child {
