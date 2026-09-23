@@ -39,17 +39,18 @@ Probar el tier gratuito de la Gemini API como proveedor del chat del porfolio (w
 
 | # | Task | Status | Route | Checks | Outcome |
 | --- | --- | --- | --- | --- | --- |
-| 1 | gemini-adapter: `GeminiOpenAIProvider` en `worker/src/gemini.ts` + exports de normalizadores en `ai.ts` + unit tests (fetch mockeado) | pending | writer (gentle-ai-worker) | vitest + tsc | — |
-| 2 | gemini-config: `Env.GEMINI_API_KEY`, selección en `index.ts`, `wrangler.toml` `[vars]`, `.gitignore` (+ `.dev.vars`), runbook README | pending | writer | tsc + tests + review | — |
-| 3 | verify-full: worker test + tsc + revisión de set de cambios | pending | verify (gentle-ai-verify) | all | — |
+| 1 | gemini-adapter: `GeminiOpenAIProvider` en `worker/src/gemini.ts` + exports de normalizadores en `ai.ts` + unit tests (fetch mockeado) | done (e78102e) | writer (gentle-ai-worker) | vitest + tsc | pass — 13 tests nuevos, suite 213 en verde; invariantes verificados por gentle-ai-verify |
+| 2 | gemini-config: `Env.GEMINI_API_KEY`, selección en `index.ts`, `wrangler.toml` `[vars]`, `.gitignore` (+ `.dev.vars`), runbook README | done (54f2385) | writer | tsc + tests + review | pass — writer validation + verify consolidado PASS (sin blockers, sin secretos) |
+| 3 | verify-full: worker test + tsc + revisión de set de cambios | done | verify (gentle-ai-verify) | all | PASS — tsc 0 diagnostics, 213/213 tests, invariantes confirmados (frontera, sin secretos, chat.ts intacto); 2 notas cosméticas resueltas |
 | 4 | smoke-live: key real, recuperación de documentos, widgets, rechazo off-topic, cuotas reales en AI Studio, decisión de producción | blocked (requiere key del usuario) | manual | live | — |
 
 ## Work-unit commit ledger
 
 | Commit | Task | Tier (RDD) | Outcome |
 | --- | --- | --- | --- |
-| (next) | 1 | pending assess | — |
-| (next) | 2 | pending assess | — |
+| e78102e feat(worker gemini adapter) | 1 | pending assess | writer validation: tsc 0 + suite 213/213; verify consolidado PASS (sin blockers) |
+| 54f2385 feat(worker gemini config) | 2 | pending assess | writer validation + verify PASS; newline final añadido en gemini.ts |
+| (task-4 boundary) | 4 | pending | smoke live + decisión de producción (requiere API key del usuario) |
 
 ## App contract deltas
 
