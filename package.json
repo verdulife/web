@@ -11,10 +11,11 @@
     "check": "astro check",
     "preview": "astro preview",
     "astro": "astro",
-    "worker:dev": "bun --cwd worker run dev",
-    "worker:check": "bun --cwd worker run check",
-    "worker:test": "bun --cwd worker run test",
-    "worker:gen": "bun --cwd worker run gen:knowledge"
+    "worker:dev": "bun run --cwd worker dev",
+    "worker:check": "bun run --cwd worker check",
+    "worker:test": "bun run --cwd worker test",
+    "worker:gen": "bun run --cwd worker gen:knowledge",
+    "worker:dev:local": "bun run --cwd worker dev:local"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.0",

@@ -24,13 +24,13 @@ odd/          ODD feature tracking
 
 ```bash
 bun install              # frontend deps (repo root)
-bun --cwd worker install # worker deps
+bun install --cwd worker # worker deps
 bun run dev              # Astro dev server on http://localhost:4321
 bun run worker:gen       # regenerate worker/src/generated/*.json from knowledge/*.md
 bun run worker:dev:local # wrangler dev (no auth) on http://localhost:8787 ... see below
 ```
 
-There is no `worker:dev:local` root script yet — run `bun --cwd worker run dev:local`. In local (no-auth) mode the Workers AI binding is unavailable, so `/api/chat` answers `502 ai_unavailable` with a user-facing message; the site keeps working and the conversation UI shows "SERVICIO NO DISPONIBLE" with a retry. The full AI path (tool loop + answer) needs real Workers AI auth.
+There is now a `worker:dev:local` root script — run `bun run worker:dev:local`. In local (no-auth) mode the Workers AI binding is unavailable, so `/api/chat` answers `502 ai_unavailable` with a user-facing message; the site keeps working and the conversation UI shows "SERVICIO NO DISPONIBLE" with a retry. The full AI path (tool loop + answer) needs real Workers AI auth.
 
 ## Using the AI endpoint
 
@@ -53,13 +53,13 @@ Contract (request/response/errors) is documented in `odd/tasks/portfolio-ai.md` 
 ```bash
 bun run check          # astro check (frontend types)
 bun run build          # astro check + static build
-bun --cwd worker run check   # worker tsc
-bun --cwd worker run test    # worker vitest (limits, ratelimit, chat, knowledge, handler)
+bun run --cwd worker check   # worker tsc
+bun run --cwd worker test    # worker vitest (limits, ratelimit, chat, knowledge, handler)
 ```
 
 ## Deploy (later, user-owned)
 
-- **Worker**: set `CLOUDFLARE_API_TOKEN` (or `wrangler login`), optionally set the `GITHUB_REPO`/`GITHUB_REF` vars to serve knowledge from the GitHub repo instead of the bundled snapshot, then `bun --cwd worker run deploy`.
+- **Worker**: set `CLOUDFLARE_API_TOKEN` (or `wrangler login`), optionally set the `GITHUB_REPO`/`GITHUB_REF` vars to serve knowledge from the GitHub repo instead of the bundled snapshot, then `bun run --cwd worker deploy`.
 - **Frontend**: Vercel import of this repo (static output, no adapter required).
 
 ## Known environment quirks (this machine)
