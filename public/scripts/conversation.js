@@ -122,7 +122,26 @@
           return typeof source === "string" && source !== "";
         })
       : [];
-    return { reply: payload.reply, sources: sources };
+
+    // Widgets ride along with the reply (worker normalization, W2). A
+    // malformed payload must never throw here: a non-array yields [], and
+    // entries that are not plain objects with a numeric `index` and a
+    // non-empty string `type` are dropped individually.
+    var widgets = [];
+    if (Array.isArray(payload.widgets)) {
+      widgets = payload.widgets.filter(function (widget) {
+        return (
+          typeof widget === "object" &&
+          widget !== null &&
+          !Array.isArray(widget) &&
+          typeof widget.index === "number" &&
+          Number.isFinite(widget.index) &&
+          typeof widget.type === "string" &&
+          widget.type !== ""
+        );
+      });
+    }
+    return { reply: payload.reply, sources: sources, widgets: widgets };
   }
 
   function readFailure(error) {
@@ -197,6 +216,218 @@
     tick();
   }
 
+  /**
+   * Inline widget engine (client half of the thread-widgets feature, W4).
+   *
+   * The worker normalizes widget tokens in the model reply into canonical
+   * `[[widget:N]]` placeholders plus a parallel `widgets` array. This engine
+   * splits the reply on that strict grammar and renders each widget through a
+   * per-type registry into the streamed turn.
+   *
+   * Public API (window.PortfolioWidgets):
+   *   PortfolioWidgets.register(type, renderer)
+   *     Stores a plain-function renderer under a non-empty string `type`;
+   *     returns nothing.
+   *   PortfolioWidgets.setLinkMetaResolver(fn)
+   *     Internal hook for the link renderer (W5 registers it). Stores a
+   *     callable `(url, signal?) => Promise<{ label, iconUrl } | null>`. The
+   *     default resolves null, so link placeholders drop visually until W5
+   *     installs the real resolver.
+   *   PortfolioWidgets.splitReply(reply, widgets)
+   *     Splits a reply into ordered text/widget segments (see below).
+   *
+   * Renderer contract (per type):
+   *   renderer(widget, ctx) -> HTMLElement | Promise<HTMLElement | null> | null
+   *     `ctx = { resolveLinkMeta }` exposes the current link-meta resolver at
+   *     render time. The resolved node must be an HTMLElement to be inserted
+   *     in-flow; a null/undefined result, a non-element result, an
+   *     unregistered type, or a throwing renderer drops the placeholder and
+   *     the surrounding text flows on.
+   *
+   * Grammar is strict: only `[[widget:<digits>]]` counts as a placeholder;
+   * everything else stays as text. A placeholder index with no matching entry
+   * in the `widgets` array is dropped together with its marker, merging the
+   * surrounding text.
+   *
+   * Security: nodes are built with createElement/textContent only, and
+   * renderers may only return DOM elements; model output is never interpreted
+   * as HTML.
+   */
+  var widgetRegistry = Object.create(null);
+  var defaultLinkMetaResolver = function () {
+    return Promise.resolve(null);
+  };
+  var linkMetaResolver = defaultLinkMetaResolver;
+
+  function register(type, renderer) {
+    if (typeof type !== "string" || type === "" || typeof renderer !== "function") return;
+    widgetRegistry[type] = renderer;
+  }
+
+  function setLinkMetaResolver(fn) {
+    if (typeof fn === "function") linkMetaResolver = fn;
+  }
+
+  /**
+   * Splits `reply` on canonical `[[widget:<digits>]]` placeholders into
+   * `[{ kind: "text", text } | { kind: "widget", widget }]` in reply order.
+   * With no widgets the whole reply is a single text segment. A placeholder
+   * index with no matching entry in `widgets` is dropped and the surrounding
+   * text merges; non-digit variants stay as plain text.
+   */
+  function splitReply(reply, widgets) {
+    if (!Array.isArray(widgets) || widgets.length === 0) {
+      return [{ kind: "text", text: reply }];
+    }
+
+    var text = typeof reply === "string" ? reply : String(reply);
+    var segments = [];
+    var cursor = 0;
+    var match;
+    var markerRe = /\[\[widget:(\d+)\]\]/g;
+
+    // Appends the text between `cursor` and `end`, merging into a preceding
+    // text segment so a dropped marker never splits surrounding text.
+    function pushText(end) {
+      if (cursor >= end) return;
+      var piece = text.slice(cursor, end);
+      var last = segments[segments.length - 1];
+      if (last && last.kind === "text") {
+        last.text += piece;
+      } else {
+        segments.push({ kind: "text", text: piece });
+      }
+      cursor = end;
+    }
+
+    while ((match = markerRe.exec(text)) !== null) {
+      pushText(match.index);
+      cursor = match.index + match[0].length;
+      var widget = findWidgetByIndex(widgets, Number(match[1]));
+      if (widget) {
+        segments.push({ kind: "widget", widget: widget });
+      }
+    }
+    pushText(text.length);
+    return segments;
+  }
+
+  function findWidgetByIndex(widgets, index) {
+    for (var i = 0; i < widgets.length; i += 1) {
+      if (widgets[i].index === index) return widgets[i];
+    }
+    return null;
+  }
+
+  /**
+   * Renders a single widget entry to an HTMLElement, or null when the
+   * placeholder must be dropped (unregistered type, renderer error, or a
+   * result that is not an HTMLElement).
+   */
+  async function renderWidgetNode(widget) {
+    if (typeof widget !== "object" || widget === null) return null;
+    var type = widget.type;
+    if (typeof type !== "string" || type === "") return null;
+    var renderer = widgetRegistry[type];
+    if (typeof renderer !== "function") return null;
+
+    var node;
+    try {
+      node = await renderer(widget, { resolveLinkMeta: linkMetaResolver });
+    } catch (error) {
+      return null;
+    }
+    if (node === null || node === undefined) return null;
+    return node instanceof HTMLElement ? node : null;
+  }
+
+  window.PortfolioWidgets = {
+    register: register,
+    setLinkMetaResolver: setLinkMetaResolver,
+    splitReply: splitReply,
+  };
+
+  /**
+   * Types one text segment into an already-attached Text node (nodeValue
+   * only), mirroring streamText's 8ms/16ms stepping and the instant
+   * prefers-reduced-motion path. Splitting each segment into its own node
+   * lets widget nodes sit between segments in the same paragraph.
+   */
+  function streamSegment(textNode, text, thread, done) {
+    var reduced = prefersReducedMotion();
+
+    if (reduced) {
+      textNode.nodeValue = text;
+      scrollThreadBottom(thread);
+      done();
+      return;
+    }
+
+    var stepMs = text.length > 400 ? 8 : 16;
+    var index = 0;
+
+    function tick() {
+      index += 1;
+      textNode.nodeValue = text.slice(0, index);
+      scrollThreadBottom(thread);
+      if (index < text.length) {
+        window.setTimeout(tick, stepMs);
+      } else {
+        done();
+      }
+    }
+
+    tick();
+  }
+
+  /**
+   * Streams split segments into `paragraph` in order. Text segments type
+   * char-by-char into their own Text node; widget segments pause the
+   * typewriter, resolve asynchronously via renderWidgetNode, append the node
+   * when non-null, then continue. With prefers-reduced-motion the text lands
+   * instantly and no timers run; widget nodes still resolve sequentially.
+   */
+  function streamSegments(paragraph, segments, thread) {
+    return new Promise(function (resolve) {
+      var reduced = prefersReducedMotion();
+      var index = 0;
+
+      function next() {
+        if (index >= segments.length) {
+          scrollThreadBottom(thread);
+          resolve();
+          return;
+        }
+        var segment = segments[index];
+        index += 1;
+
+        if (segment.kind === "text") {
+          var textNode = document.createTextNode("");
+          paragraph.append(textNode);
+          if (reduced) {
+            textNode.nodeValue = segment.text;
+            scrollThreadBottom(thread);
+            next();
+          } else {
+            streamSegment(textNode, segment.text, thread, next);
+          }
+          return;
+        }
+
+        // Widget segment: pause typing until the node resolves, then insert.
+        renderWidgetNode(segment.widget).then(function (node) {
+          if (node) {
+            paragraph.append(node);
+            scrollThreadBottom(thread);
+          }
+          next();
+        });
+      }
+
+      next();
+    });
+  }
+
   function init() {
     var root = document.getElementById(HOOK_ROOT_ID);
     if (!root) return;
@@ -228,9 +459,12 @@
 
     /**
      * Appends an assistant turn and streams its reply into a single
-     * .ask-paragraph (textContent only).
+     * .ask-paragraph (textContent only). Without widgets the previous
+     * single-pass streamText behavior is kept unchanged; with widget segments
+     * the reply streams per segment, pausing the typewriter while each widget
+     * resolves into the paragraph.
      */
-    function buildAssistantTurn(text) {
+    function buildAssistantTurn(text, widgets) {
       return new Promise(function (resolve) {
         var turn = document.createElement("div");
         turn.className = "ask-assistant";
@@ -242,10 +476,21 @@
         thread.append(turn);
         scrollThreadBottom(thread);
 
-        streamText(paragraph, text, thread, function () {
-          scrollThreadBottom(thread);
-          resolve();
-        });
+        var segments = splitReply(text, widgets);
+        var untouchedPlainText =
+          segments.length === 1 && segments[0].kind === "text" && segments[0].text === text;
+
+        if (untouchedPlainText) {
+          // No widget segments and the text was not altered: the unchanged
+          // streamText path (byte-for-byte for the no-widget replies).
+          streamText(paragraph, text, thread, function () {
+            scrollThreadBottom(thread);
+            resolve();
+          });
+          return;
+        }
+
+        streamSegments(paragraph, segments, thread).then(resolve);
       });
     }
 
@@ -372,7 +617,7 @@
         // thread pinned to the bottom on its own from here on.
         setThinking(false);
         history.push({ role: "assistant", content: response.reply });
-        await buildAssistantTurn(response.reply);
+        await buildAssistantTurn(response.reply, response.widgets ?? []);
       } catch (error) {
         var failure = readFailure(error);
         showError(failure.code, failure.message);
