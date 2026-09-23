@@ -698,6 +698,80 @@
     color: var(--color-ink-muted);
   }
 
+  /* Inline thread widget — projects: scroller horizontal editorial (Q2/Q3).
+     Todas las tarjetas de proyecto en un carrusel con snap, scrollbar
+     oculto y máscara de difuminado en los bordes (peek sin corte duro);
+     misma estética que las tarjetas de /proyectos (índice mono + sitio ↗). */
+  .projects-scroller {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scroll-behavior: smooth;
+    scrollbar-width: none; /* Firefox: oculta la barra del carrusel */
+    /* Edge fade: la siguiente tarjeta se entrevé sin corte duro en el borde. */
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 1.25rem, #000 calc(100% - 1.25rem), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 1.25rem, #000 calc(100% - 1.25rem), transparent 100%);
+    padding: 0.25rem 0 1.5rem;
+    cursor: grab;
+  }
+
+  .projects-scroller::-webkit-scrollbar {
+    display: none; /* WebKit/Blink: equivalente a scrollbar-width:none */
+  }
+
+  .projects-track {
+    display: flex;
+    gap: 1.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .projects-card {
+    flex: 0 0 clamp(15rem, 60vw, 19rem);
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-height: 12rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--color-line);
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .projects-card-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: baseline;
+  }
+
+  .projects-card-site {
+    white-space: nowrap;
+    font-size: 0.66rem;
+  }
+
+  .projects-card-title {
+    font-family: var(--font-serif);
+    font-size: 1.35rem;
+    line-height: 1.15;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--color-ink);
+  }
+
+  .projects-card-desc {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--color-ink-muted);
+    margin: 0;
+    max-width: 40ch;
+  }
+
   .ask-user {
     margin-block-start: 1rem;
   }

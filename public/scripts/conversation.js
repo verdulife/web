@@ -907,6 +907,173 @@
 
   window.PortfolioWidgets.register("project", renderProject, { block: true });
 
+  /** Client-side cap for the projects scroller list (worker sorts/caps first). */
+  var MAX_PROJECTS_LIST_CAP = 40;
+  /** Client-side defensive truncation for scroller card descriptions. */
+  var MAX_PROJECT_CARD_DESC_CHARS = 220;
+
+  /**
+   * Q2 — projects scroller: worker-backed projects list resolver.
+   *
+   * resolveProjectsList() resolves the doc-level project list from the
+   * worker's `GET /api/projects` endpoint. The result is cached in-session
+   * keyed by the request URL: the in-flight promise is stored in the Map, so
+   * concurrent and repeated renders share one fetch (same pattern as
+   * resolveLinkMeta / resolveProjectMeta). Each item is sanitized
+   * ({slug,title} non-empty strings, description string, `url` kept only when
+   * a non-empty http(s) string) and the list is capped at 40 items. Every
+   * failure path (network error, 4s timeout, non-ok status, malformed body)
+   * resolves `null`; this function never throws.
+   */
+  var projectsListCache = new Map();
+
+  async function resolveProjectsList() {
+    try {
+      // Same worker base URL resolution as postChat / resolveLinkMeta.
+      var workerUrl = window.__PORTFOLIO_WORKER_URL ?? WORKER_URL_FALLBACK;
+      var url = workerUrl + "/api/projects";
+      var cached = projectsListCache.get(url);
+      if (cached) return cached;
+
+      var pending = (async function () {
+        try {
+          var response = await fetch(url, {
+            headers: { Accept: "application/json" },
+            signal: AbortSignal.timeout(4000),
+          });
+          if (!response.ok) return null;
+          var body = await response.json();
+          if (
+            typeof body !== "object" ||
+            body === null ||
+            !Array.isArray(body.projects)
+          ) {
+            return null;
+          }
+
+          var raw = body.projects.slice(0, MAX_PROJECTS_LIST_CAP);
+          var items = [];
+          for (var i = 0; i < raw.length; i += 1) {
+            var item = raw[i];
+            if (typeof item !== "object" || item === null) continue;
+            var slug = typeof item.slug === "string" ? item.slug : "";
+            var title = typeof item.title === "string" ? item.title : "";
+            if (slug === "" || title === "") continue;
+            var urlValue = typeof item.url === "string" ? item.url : "";
+            // `var` is function-scoped and reused across iterations: assign
+            // both branches explicitly so a url-less item never inherits the
+            // previous item's url.
+            var safeUrl;
+            if (
+              urlValue.slice(0, 8) === "https://" ||
+              urlValue.slice(0, 7) === "http://"
+            ) {
+              safeUrl = urlValue;
+            } else {
+              safeUrl = undefined;
+            }
+            items.push({
+              slug: slug,
+              title: title,
+              description:
+                typeof item.description === "string" ? item.description : "",
+              url: safeUrl,
+            });
+          }
+          return items;
+        } catch (error) {
+          return null;
+        }
+      })();
+
+      projectsListCache.set(url, pending);
+      return pending;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  /**
+   * Q2 — projects scroller widget renderer (block layout).
+   *
+   * Renders the ALL-projects horizontal scroller: a region span holding a
+   * flex track of one card per project. Each card is an anchor to the site's
+   * static detail route `/proyectos/<slug>/` (normal navigation — no
+   * preventDefault) and carries the editorial look of the reverted page
+   * cards: mono 01-based index, optional `sitio ↗` faux-link (the whole card
+   * is already the anchor, so the site span stays non-interactive text),
+   * serif title and description. A null/empty list drops the placeholder.
+   * Nodes are built with createElement/textContent only — never innerHTML;
+   * any unexpected exception returns null.
+   */
+  async function renderProjects(widget, _ctx) {
+    try {
+      if (typeof widget !== "object" || widget === null) return null;
+      // The token carries no params; the type check is purely defensive.
+      if (widget.type !== "projects") return null;
+
+      var projects = await resolveProjectsList();
+      if (projects === null || projects.length === 0) return null;
+
+      var scroller = document.createElement("span");
+      scroller.className = "projects-scroller";
+      scroller.setAttribute("role", "region");
+      scroller.setAttribute("aria-label", "Proyectos en scroll horizontal");
+      scroller.setAttribute("tabindex", "0");
+
+      var track = document.createElement("span");
+      track.className = "projects-track";
+
+      for (var i = 0; i < projects.length; i += 1) {
+        var project = projects[i];
+
+        var card = document.createElement("a");
+        card.className = "projects-card";
+        card.href = "/proyectos/" + project.slug + "/";
+
+        var top = document.createElement("span");
+        top.className = "projects-card-top";
+
+        var index = document.createElement("span");
+        index.className = "mono-meta";
+        index.setAttribute("aria-hidden", "true");
+        index.textContent = String(i + 1).padStart(2, "0");
+        top.append(index);
+
+        if (typeof project.url === "string" && project.url !== "") {
+          var site = document.createElement("span");
+          site.className = "mono-meta projects-card-site";
+          site.textContent = "sitio ↗";
+          top.append(site);
+        }
+
+        card.append(top);
+
+        var title = document.createElement("strong");
+        title.className = "projects-card-title";
+        title.textContent = project.title;
+        card.append(title);
+
+        var description = document.createElement("span");
+        description.className = "projects-card-desc";
+        description.textContent = truncateLabel(
+          project.description,
+          MAX_PROJECT_CARD_DESC_CHARS
+        );
+        card.append(description);
+
+        track.append(card);
+      }
+
+      scroller.append(track);
+      return scroller;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  window.PortfolioWidgets.register("projects", renderProjects, { block: true });
+
   /**
    * Types one text segment into an already-attached Text node (nodeValue
    * only), mirroring streamText's 8ms/16ms stepping and the instant
