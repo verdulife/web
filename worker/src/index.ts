@@ -15,6 +15,7 @@ import type { Limits } from "./limits";
 import { LinkMetaError, isFetchableUrl, resolveLinkMeta } from "./link-meta";
 import { buildSystemPrompt } from "./prompts";
 import type { Env } from "./types";
+import { normalizeWidgets } from "./widgets";
 
 function json(
   data: unknown,
@@ -201,7 +202,15 @@ async function handleChat(
       deps.ai,
       deps.knowledge,
     );
-    return json({ reply: result.reply, sources: result.sources }, undefined, cors);
+    const normalized = normalizeWidgets(result.reply);
+    // `widgets` is omitted when empty so the empty case keeps the previous
+    // response shape; when widgets exist the contract is `{ reply, widgets, sources }`.
+    const widgets = normalized.widgets.length > 0 ? { widgets: normalized.widgets } : {};
+    return json(
+      { reply: normalized.reply, ...widgets, sources: result.sources },
+      undefined,
+      cors,
+    );
   } catch (error) {
     if (!(error instanceof ChatRunError)) {
       console.error("[chat]", error instanceof Error ? error.message : error);

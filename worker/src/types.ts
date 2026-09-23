@@ -1,3 +1,5 @@
+import type { Widget } from "./widgets";
+
 export interface Env {
   AI: any;
   MODEL_ID: string;
@@ -28,6 +30,8 @@ export interface ChatRequest {
 
 export interface ChatResponse {
   reply: string;
+  /** Validated inline widgets, present when the reply contains any. */
+  widgets?: Widget[];
   sources: string[];
 }
 

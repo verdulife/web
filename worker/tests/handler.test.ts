@@ -149,6 +149,26 @@ describe("buildHandler routing", () => {
 });
 
 describe("buildHandler POST /api/chat", () => {
+  it("normalizes inline widget tokens into canonical placeholders plus widgets", async () => {
+    const ai = new FakeAIProvider({
+      text: 'Hola [[widget:link url="https://example.com"]] adiós',
+      toolCalls: null,
+    });
+    const handler = buildHandler(makeDeps({ ai }));
+    const response = await handler(
+      chatRequest({ messages: [{ role: "user", content: "¿Quién eres?" }] }),
+      makeEnv(),
+    );
+
+    expect(response.status).toBe(200);
+    const body = await jsonBody(response);
+    expect(body.reply).toBe("Hola [[widget:0]] adiós");
+    expect(body.sources).toEqual([]);
+    expect(body.widgets).toEqual([
+      { index: 0, type: "link", url: "https://example.com" },
+    ]);
+  });
+
   it("returns the reply and sources on the happy path", async () => {
     const handler = buildHandler(makeDeps());
     const response = await handler(

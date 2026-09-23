@@ -82,8 +82,7 @@ Worker normalizes the model reply before returning:
 | ID | Task | Checks |
 | --- | --- | --- |
 | W1 | Worker: `GET /api/link-meta` endpoint (fetch+parse, security, cache) | unit tests (mock fetch), `tsc`, wrangler smoke |
-| W2 | Worker: widget token parser + bare-URL detection + normalization in chat response | unit tests (valid/invalid/limits/order), contract test in handler |
-| W3 | Worker: system prompt documents widget syntax + rules | prompt test/readback; chat E2E |
+| W2 | Worker: widget token parser + bare-URL detection + normalization in chat response | unit tests (valid/invalid/limits/order), contract test in handler || W3 | Worker: system prompt documents widget syntax + rules | prompt test/readback; chat E2E |
 | W4 | Client: widget engine (registry + placeholder splitter + `PortfolioWidgets` API) | `astro check`, manual E2E |
 | W5 | Client: link renderer + `/api/link-meta` fetch + cache + loading state | manual E2E (og:title, manifest, title, fallback) |
 | W6 | Client: typewriter integration (pause/resolve/insert, hide raw URL) | manual E2E + reduced-motion |
@@ -93,9 +92,16 @@ Worker normalizes the model reply before returning:
 ## Progress
 
 - [x] W1 — done: `GET /api/link-meta` endpoint (fetch+parse, security, cache).
-- [ ] W2 … W8 pending. Next: W2.
+- [x] W2 — done: widget token parser + bare-URL detection + normalization in chat response.
+- [ ] W3 … W8 pending. Next: W3.
 
 ## Verification evidence
+
+W2 (worker vitest + `tsc --noEmit`):
+
+- `cd worker && bun run check` → exit 0, no type errors.
+- `cd worker && bun run test` → 7 files / 138 tests passed (112 prior + 26 new: 25 in `tests/widgets.test.ts` + 1 contract case in `tests/handler.test.ts`).
+- `normalizeWidgets` behavior observed in tests: valid link/project tokens converted to `[[widget:N]]`; unknown type, malformed tokens (missing close, junk inside, missing url), non-http URL schemes, invalid slugs, and slug-over-cap dropped; bare URLs converted with trailing punctuation stripped and kept as text; non-fetchable bare URLs preserved as plain text; token-before-URL ordering indexes 0,1; MAX_WIDGETS=4 cap with the 5th widget dropped and placeholder count == widgets.length; plain text untouched; handler contract case returns `{ reply, widgets, sources }`.
 
 W1 (worker vitest + `tsc --noEmit`):
 
