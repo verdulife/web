@@ -595,7 +595,7 @@
   .widget-image {
     display: block;
     width: min(75%, 30rem);
-    margin: 1.5rem auto;
+    margin: 1.5rem 0; /* alineado a la izquierda de la columna */
     padding: 0.5rem 0.5rem 0.75rem;
     background-color: #ffffff;
     border: 1px solid var(--color-line);
@@ -606,7 +606,9 @@
   .widget-image-img {
     display: block;
     width: 100%;
-    height: auto;
+    aspect-ratio: 1 / 1; /* polaroid cuadrada */
+    object-fit: cover;
+    object-position: top;
   }
 
   /* Inline thread widget — project: card estilo Telegram (bloque).
@@ -616,7 +618,7 @@
     display: block;
     width: 100%;
     max-width: 30rem;
-    margin: 1.25rem auto;
+    margin: 1.25rem 0; /* alineado a la izquierda de la columna */
     background-color: #ffffff;
     border: 1px solid var(--color-line);
     border-radius: 10px;
