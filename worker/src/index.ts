@@ -1,6 +1,7 @@
 import type { AIProvider } from "./ai";
 import { CloudflareAIProvider, MockAIProvider } from "./ai";
 import { ChatRunError, runChat } from "./chat";
+import { GeminiOpenAIProvider } from "./gemini";
 import { createKnowledgeProvider } from "./knowledge";
 import type { KnowledgeProvider } from "./knowledge";
 import { createRateLimiter } from "./ratelimit";
@@ -262,7 +263,14 @@ export default {
     const deps: HandlerDeps = {
       rateLimiter: createRateLimiter(env),
       knowledge: createKnowledgeProvider(env),
-      ai: env.AI_PROVIDER === "mock" ? new MockAIProvider() : new CloudflareAIProvider(env.AI, env.MODEL_ID),
+      // Provider selection: mock (CLI dev only) | gemini (default) | cloudflare
+      // (legacy fallback, unchanged).
+      ai:
+        env.AI_PROVIDER === "mock"
+          ? new MockAIProvider()
+          : env.AI_PROVIDER === "gemini"
+            ? new GeminiOpenAIProvider(env.GEMINI_API_KEY ?? "", env.MODEL_ID)
+            : new CloudflareAIProvider(env.AI, env.MODEL_ID),
       limits: limitsFromEnv(env),
       allowedOrigins: allowedOriginsFromEnv(env),
     };

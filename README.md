@@ -7,7 +7,7 @@ Personal/professional portfolio with an integrated conversational AI layer: **a 
 ## Stack
 
 - **Frontend**: Astro 5 + TypeScript + Tailwind CSS v4 (static output; HTML-first conventional pages)
-- **AI backend**: Cloudflare Worker (`worker/`) + Workers AI — browser → Worker → Workers AI (no direct provider access)
+- **AI backend**: Cloudflare Worker (`worker/`) + Gemini API (free tier, `gemini-2.5-flash`) — browser → Worker → Gemini (no direct provider access; legacy Workers AI mode selectable via `--var AI_PROVIDER:cloudflare`)
 - **Knowledge**: Markdown in `knowledge/` (Spanish), single source of truth for the pages AND the AI (stored behind a `KnowledgeProvider` interface: GitHub raw in production, bundled snapshot for local/dev)
 
 ## Repo layout
@@ -30,7 +30,7 @@ bun run worker:gen       # regenerate worker/src/generated/*.json from knowledge
 bun run worker:dev:local # wrangler dev (no auth) on http://localhost:8787 ... see below
 ```
 
-There is now a `worker:dev:local` root script — run `bun run worker:dev:local`. In local (no-auth) mode the Workers AI binding is unavailable, so `/api/chat` answers `502 ai_unavailable` with a user-facing message; the site keeps working and the conversation UI shows "SERVICIO NO DISPONIBLE" with a retry. The full AI path (tool loop + answer) needs real Workers AI auth.
+There is now a `worker:dev:local` root script — run `bun run worker:dev:local`. The full AI path (tool loop + knowledge + answer) works locally once the Gemini API key is in `worker/.dev.vars`; without a key `/api/chat` answers `502 ai_unavailable` with a user-facing message, the site keeps working and the conversation UI shows "SERVICIO NO DISPONIBLE" with a retry.
 
 ## Using the AI endpoint
 
@@ -47,6 +47,44 @@ Contract (request/response/errors) is documented in `odd/tasks/portfolio-ai.md` 
 1. Edit the Spanish markdown in `knowledge/` (frontmatter: `id`, `kind`, `title`, `description`).
 2. Run `bun run worker:gen` — regenerates the worker's bundled snapshot + index (excludes `knowledge/index.md` by design).
 3. The static pages (about, skills, services, projects, …) render the same files automatically.
+
+## Gemini provider (chat AI)
+
+El chat del worker usa la **Gemini API free tier** por defecto (modelo `gemini-2.5-flash` a través del endpoint OpenAI-compatible de Gemini). Cuota estimada: ~10–15 RPM por proyecto; una pregunta del chat cuesta hasta **4 llamadas al modelo** (3 turnos de herramienta + settle). Los números reales de cuota no son públicos: verifícalos en [AI Studio](https://aistudio.google.com/rate-limit) después de crear la key.
+
+### Requisitos
+
+1. Crear una API key en [aistudio.google.com/apikey](https://aistudio.google.com/apikey). Opcional: restringir la key solo al Gemini API y revisar el toggle de uso de datos / opción UE del tier gratuito en AI Studio.
+2. La key **nunca va a git**: en local vive en `worker/.dev.vars` (gitignored) y en producción como secreto del worker.
+
+### Local dev
+
+```bash
+echo 'GEMINI_API_KEY=...' >> worker/.dev.vars   # gitignored
+cd worker && wrangler dev                       # o `bun run worker:dev:local` para runs sin auth
+```
+
+### Producción
+
+```bash
+cd worker && wrangler secret put GEMINI_API_KEY
+```
+
+`wrangler.toml` ya trae por defecto `AI_PROVIDER = "gemini"` y `MODEL_ID = "gemini-2.5-flash"`. Al desplegar, recuerda: `ALLOWED_ORIGINS` debe listar el dominio real y, si el frontend está en Vercel, apuntar `PUBLIC_WORKER_URL` al worker desplegado.
+
+### Cambiar de proveedor
+
+El valor por defecto commiteado es Gemini; el resto de modos se seleccionan solo por CLI (`--var`), nunca editando `wrangler.toml`:
+
+```bash
+cd worker && bun run dev:mock                   # AI_PROVIDER:mock -> MockAIProvider (widget/UI testing)
+cd worker && wrangler dev --var AI_PROVIDER:cloudflare   # legacy Workers AI
+cd worker && wrangler dev --var AI_PROVIDER:gemini       # explícito, por si se prueba sin el defecto
+```
+
+### Caída del proveedor
+
+Si Gemini no responde o limita por cuota, `/api/chat` responde `502` y la UI muestra "SERVICIO NO DISPONIBLE" con reintento; el resto del sitio sigue funcionando con normalidad.
 
 ## Checks & tests
 

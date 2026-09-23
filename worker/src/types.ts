@@ -3,8 +3,13 @@ import type { Widget } from "./widgets";
 export interface Env {
   AI: any;
   MODEL_ID: string;
-  /** Dev-only mock selection (`--var AI_PROVIDER:mock`); absent = real provider. */
+  /** Provider selection: mock (CLI dev only) | gemini (default) | cloudflare (legacy). */
   AI_PROVIDER?: string;
+  /**
+   * Secret key for the Gemini provider. Local dev: `worker/.dev.vars`; prod:
+   * `wrangler secret put GEMINI_API_KEY`. Never a `[vars]` entry.
+   */
+  GEMINI_API_KEY?: string;
   GITHUB_REPO: string;
   GITHUB_REF: string;
   GITHUB_TOKEN: string;
