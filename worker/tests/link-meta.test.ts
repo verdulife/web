@@ -5,6 +5,8 @@ import {
   decodeHtmlEntities,
   extractIconHref,
   extractManifestHref,
+  extractMetaDescription,
+  extractOgProperty,
   extractOgTitle,
   extractTitle,
   isFetchableUrl,
@@ -69,6 +71,17 @@ describe("extraction helpers", () => {
     expect(decodeHtmlEntities("a &amp; b &lt;c&gt; &#169; &#x1F600;")).toBe(
       "a & b <c> © 😀",
     );
+  });
+
+  it("extracts any og property with entity decode and whitespace collapse", () => {
+    const html = `<meta content="  Mi &amp;  Web  " property="og:site_name">`;
+    expect(extractOgProperty(html, "og:site_name")).toBe("Mi & Web");
+    expect(extractOgProperty(html, "og:OG_TITLE")).toBeNull();
+  });
+
+  it("extracts the meta description as og:description fallback", () => {
+    const html = `<meta name="description" content="  Resumen  &nbsp;  del sitio ">`;
+    expect(extractMetaDescription(html)).toBe("Resumen del sitio");
   });
 
   it("resolves relative hrefs against the base URL", () => {
@@ -223,6 +236,63 @@ describe("resolveLinkMeta", () => {
       resolveLinkMeta("https://example.com/x", { fetchImpl }),
     ).rejects.toMatchObject({ code: "upstream_failed" });
   });
+
+  it("returns the optional og fields (title, description, site name, image)", async () => {
+    const html = `<meta property="og:title" content="Jardinería La Mediterránea">
+      <meta property="og:description" content="Vivero y jardinería en Barcelona.">
+      <meta property="og:site_name" content="La Mediterránea">
+      <meta property="og:image" content="/og/portada.jpg">`;
+    const fetchImpl = makeFetch([HTML(html)]);
+    const meta = await resolveLinkMeta("https://jardineria.example.com/a", { fetchImpl });
+    expect(meta.ogTitle).toBe("Jardinería La Mediterránea");
+    expect(meta.ogDescription).toBe("Vivero y jardinería en Barcelona.");
+    expect(meta.ogSiteName).toBe("La Mediterránea");
+    expect(meta.ogImage).toBe("https://jardineria.example.com/og/portada.jpg");
+  });
+
+  it("falls back to the meta description for og:description", async () => {
+    const fetchImpl = makeFetch([HTML(`<meta name="description" content="Descripción clásica">`)]);
+    const meta = await resolveLinkMeta("https://example.com/x", { fetchImpl });
+    expect(meta.ogDescription).toBe("Descripción clásica");
+    expect(meta.ogTitle).toBeUndefined();
+    expect(meta.ogImage).toBeUndefined();
+    expect(meta.ogSiteName).toBeUndefined();
+  });
+
+  it("omits every og field when the page publishes none", async () => {
+    const fetchImpl = makeFetch([HTML("<html><title>Solo título</title></html>")]);
+    const meta = await resolveLinkMeta("https://example.com/x", { fetchImpl });
+    expect(meta.ogTitle).toBeUndefined();
+    expect(meta.ogDescription).toBeUndefined();
+    expect(meta.ogImage).toBeUndefined();
+    expect(meta.ogSiteName).toBeUndefined();
+  });
+
+  it("caps og text fields and drops images over the cap", async () => {
+    const title = "t".repeat(300);
+    const description = "d".repeat(500);
+    const siteName = "s".repeat(150);
+    const image = `https://example.com/${"i".repeat(2010)}.jpg`;
+    const fetchImpl = makeFetch([
+      HTML(`<meta property="og:title" content="${title}">
+        <meta property="og:description" content="${description}">
+        <meta property="og:site_name" content="${siteName}">
+        <meta property="og:image" content="${image}">`),
+    ]);
+    const meta = await resolveLinkMeta("https://example.com/x", { fetchImpl });
+    expect(meta.ogTitle).toHaveLength(200);
+    expect(meta.ogDescription).toHaveLength(400);
+    expect(meta.ogSiteName).toHaveLength(100);
+    expect(meta.ogImage).toBeUndefined();
+  });
+
+  it("drops og:image values with non-http(s) schemes", async () => {
+    const fetchImpl = makeFetch([
+      HTML(`<meta property="og:image" content="data:image/png;base64,AAAA">`),
+    ]);
+    const meta = await resolveLinkMeta("https://example.com/x", { fetchImpl });
+    expect(meta.ogImage).toBeUndefined();
+  });
 });
 
 /* -------------------------------- the route --------------------------------- */
@@ -268,6 +338,7 @@ describe("GET /api/link-meta route", () => {
       domain: "example.com",
       label: "Proyecto",
       iconUrl: "https://www.google.com/s2/favicons?domain=example.com&sz=64",
+      ogTitle: "Proyecto",
     });
     expect(response.headers.get("access-control-allow-origin")).toBe("http://localhost:4321");
     expect(response.headers.get("vary")).toBe("Origin");

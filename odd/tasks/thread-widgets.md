@@ -160,3 +160,32 @@ W1 (worker vitest + `tsc --noEmit`):
 ## Next step
 
 Implement the image widget (I1 → I6); link widget closed and committed.
+## Project widget — third type card (added 2026-09-23)
+
+User spec: block card (NOT inline), Telegram-share style, using much of the OG data; 100% width on mobile, recommended max-width on desktop. Image widget moves to a real block (same look, text flows above/below).
+
+| Decision | Value |
+| --- | --- |
+| Card data | `/api/project?slug=` endpoint: knowledge doc (canonical title/desc) + live OG of the project url (image, site_name, description) via link-meta enrichment |
+| Projects source | Expand knowledge from the deployed site section (verdu.vercel.app, "Projects"): 14 live URLs + 2 existing (gaplogic, kncelados); dead (grandefronteo, supercleanvilanova) discarded |
+| Token | `[[widget:project slug="botanic"]]` (already in allowlist; slug = knowledge project id) |
+| Engine | Block widgets: `register(type, renderer, { block: true })`; paragraph closes before/after block nodes (text flows above and below); image becomes block |
+
+New docs (12): jardinerialamediterrania, calandraautomobili, ulavet, gaudioart, stopperinternational, tattookiller, menuplis, sitgesgi, simplementewear, sglvilanova, seastone, mdisitges. URL updates (2): gaplogic, kncelados.
+
+Tasks:
+
+| ID | Task | Checks |
+| --- | --- | --- |
+| P1 | Knowledge: 12 new project docs (og-grounded) + urls on gaplogic/kncelados + snapshot regen | worker:gen; per-doc frontmatter valid |
+| [x] P2 | Worker: link-meta OG enrichment (ogDescription, ogImage, ogSiteName) + tests | unit tests |
+| [x] P3 | Worker: GET /api/project?slug= (doc lookup + OG merge, graceful fallback) + tests | unit tests + live smoke |
+| P4 | Client: block engine (register options.block, paragraph closing) + image→block | DOM harness + astro check |
+| P5 | Client: renderProject card renderer (fetch /api/project, cached) | harness + astro check |
+| P6 | CSS: .widget-card (100% mobile / max-width desktop, Telegram style) | visual review |
+| P7 | Prompt + verification: project usage note; full suite + E2E | all prior checks + smoke |
+
+Project widget progress (verified):
+
+- [x] P2 — done: link-meta OG enrichment — `LinkMeta` gains optional `ogTitle?` / `ogDescription?` / `ogImage?` / `ogSiteName?` (existing fields stable). New exported helpers `extractOgProperty(html, property)` (entity-decoded, whitespace-collapsed, attribute-order independent, case-insensitive), `extractMetaDescription(html)` (ogDescription fallback), plus `resolveOgImage` (relative resolved to absolute, http(s) only). Caps: title 200, description 400, siteName 100, image 2000 (oversized image dropped). `cd worker && bun run check` → exit 0; `cd worker && bun run test` → 9 files / 186 tests pass (35 in link-meta, incl. og extraction, fallback, absent-fields, caps, non-http scheme; route 200 body now asserts `ogTitle`).
+- [x] P3 — done: `GET /api/project?slug=` — new `worker/src/project.ts` (`resolveProjectCard(slug, { entries, fetchImpl?, now? })` → `ProjectCard` with knowledge-doc title/description + live OG (domain, image, siteName (ogSiteName ?? domain), iconUrl); unknown slug → null; OG failure non-fatal → doc-only card still 200; module cache by slug TTL 1h / 50 entries, clearable). `types.ts` gains `url?: string` on `KnowledgeIndexEntry` (snapshot index carries 14 project urls). Route: missing/blank slug or null → 404 `{ error: { code: "project_not_found", message: "Proyecto no encontrado.", retryable: false } }` with CORS echo; found → 200 ProjectCard. Evidence: `bun run check` exit 0; project.test.ts 11 tests (doc+OG merge, og:site_name→domain fallback, no-url doc-only, fetch rejection, non-fetchable url, cache hit w/o second fetch, route 200/404 + CORS). Live smoke still pending under P7.

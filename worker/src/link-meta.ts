@@ -16,6 +16,14 @@ export interface LinkMeta {
   label: string;
   /** Absolute icon URL, falling back to Google's favicon service. */
   iconUrl: string;
+  /** Open Graph title (capped), when the page publishes one. */
+  ogTitle?: string;
+  /** Open Graph description (capped), or the meta description fallback. */
+  ogDescription?: string;
+  /** Absolute http(s) og:image URL (capped), when the page publishes one. */
+  ogImage?: string;
+  /** Open Graph site name (capped), when the page publishes one. */
+  ogSiteName?: string;
 }
 
 /**
@@ -37,6 +45,10 @@ export class LinkMetaError extends Error {
 const FETCH_TIMEOUT_MS = 5000;
 const MAX_DOC_BYTES = 1_500_000;
 const MAX_LABEL_CHARS = 120;
+const MAX_OG_TITLE_CHARS = 200;
+const MAX_OG_DESCRIPTION_CHARS = 400;
+const MAX_OG_SITE_NAME_CHARS = 100;
+const MAX_OG_IMAGE_CHARS = 2000;
 const MAX_CACHE_ENTRIES = 100;
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
@@ -141,6 +153,35 @@ export function extractOgTitle(html: string): string | null {
   return null;
 }
 
+/**
+ * `content` of the first `<meta property="…">` tag matching `property`
+ * (attribute-order independent, case-insensitive; e.g. "og:description"). The
+ * value is entity-decoded with whitespace collapsed; null when absent.
+ */
+export function extractOgProperty(html: string, property: string): string | null {
+  const needle = property.toLowerCase();
+  for (const tag of html.matchAll(/<meta\b[^>]*>/gi)) {
+    const prop = extractAttr(tag[0], "property");
+    if (prop != null && prop.toLowerCase() === needle) {
+      const content = extractAttr(tag[0], "content");
+      if (content != null) return tidyText(content);
+    }
+  }
+  return null;
+}
+
+/** `content` of the first `<meta name="description">` tag (og:description fallback). */
+export function extractMetaDescription(html: string): string | null {
+  for (const tag of html.matchAll(/<meta\b[^>]*>/gi)) {
+    const name = extractAttr(tag[0], "name");
+    if (name != null && name.toLowerCase() === "description") {
+      const content = extractAttr(tag[0], "content");
+      if (content != null) return tidyText(content);
+    }
+  }
+  return null;
+}
+
 /** Text of the first `<title>` tag, or null. */
 export function extractTitle(html: string): string | null {
   const match = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
@@ -200,6 +241,11 @@ export function decodeHtmlEntities(text: string): string {
   });
 }
 
+/** Entity-decodes a string and collapses runs of whitespace (tags preserved). */
+function tidyText(text: string): string {
+  return decodeHtmlEntities(text).replace(/\s+/g, " ").trim();
+}
+
 /** Resolves an href (possibly relative) against a base URL, or null on failure. */
 export function resolveHref(href: string, baseUrl: string): URL | null {
   try {
@@ -217,11 +263,16 @@ const ICON_FALLBACK = (domain: string): string =>
   `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
 
 function sanitizeLabel(text: string | null | undefined): string | null {
+  return sanitizeText(text, MAX_LABEL_CHARS);
+}
+
+/** Collapses whitespace, strips markup and caps a string; null when empty. */
+function sanitizeText(text: string | null | undefined, maxChars: number): string | null {
   if (text == null) return null;
   const stripped = decodeHtmlEntities(text).replace(/<[^>]*>/g, "");
   const collapsed = stripped.replace(/\s+/g, " ").trim();
   if (!collapsed) return null;
-  return collapsed.slice(0, MAX_LABEL_CHARS);
+  return collapsed.slice(0, maxChars);
 }
 
 function resolveIcon(pageUrl: string, domain: string, html: string): string {
@@ -233,6 +284,20 @@ function resolveIcon(pageUrl: string, domain: string, html: string): string {
     }
   }
   return ICON_FALLBACK(domain);
+}
+
+/**
+ * Resolves an og:image value to an absolute http(s) URL, dropping values with
+ * non-http(s) schemes (e.g. data:) or exceeding the length cap.
+ */
+function resolveOgImage(raw: string | null | undefined, pageUrl: string): string | null {
+  if (raw == null) return null;
+  const resolved = resolveHref(raw, pageUrl);
+  if (resolved == null) return null;
+  if (resolved.protocol !== "http:" && resolved.protocol !== "https:") return null;
+  const value = resolved.toString();
+  if (value.length > MAX_OG_IMAGE_CHARS) return null;
+  return value;
 }
 
 /** Extracts the `name` field of a web app manifest (JSON object). */
@@ -252,7 +317,9 @@ function manifestName(text: string): string | null {
 /**
  * Resolves link metadata for a raw URL. Throws `LinkMetaError` with code
  * `invalid_url` for non-fetchable input and `upstream_failed` for network or
- * parse failures. Successful results are cached (TTL 1h, ~100 entries).
+ * parse failures. Successful results are cached (TTL 1h, ~100 entries). In
+ * addition to the stable fields, optional Open Graph fields (title,
+ * description, image, site name) are extracted for the project card.
  */
 export async function resolveLinkMeta(
   rawUrl: string,
@@ -302,12 +369,25 @@ export async function resolveLinkMeta(
   if (!label) label = sanitizeLabel(extractTitle(html));
   if (!label) label = domain;
 
+  // Optional OG fields; each is omitted when the page does not publish it.
+  const ogTitle = sanitizeText(extractOgProperty(html, "og:title"), MAX_OG_TITLE_CHARS);
+  const ogDescription = sanitizeText(
+    extractOgProperty(html, "og:description") ?? extractMetaDescription(html),
+    MAX_OG_DESCRIPTION_CHARS,
+  );
+  const ogImage = resolveOgImage(extractOgProperty(html, "og:image"), parsed.href);
+  const ogSiteName = sanitizeText(extractOgProperty(html, "og:site_name"), MAX_OG_SITE_NAME_CHARS);
+
   const meta: LinkMeta = {
     url: parsed.href,
     domain,
     label,
     iconUrl: resolveIcon(parsed.href, domain, html),
   };
+  if (ogTitle != null) meta.ogTitle = ogTitle;
+  if (ogDescription != null) meta.ogDescription = ogDescription;
+  if (ogImage != null) meta.ogImage = ogImage;
+  if (ogSiteName != null) meta.ogSiteName = ogSiteName;
 
   cache.set(key, { meta, expiresAt: now() + CACHE_TTL_MS });
   // Simple insertion-order eviction beyond the cap.

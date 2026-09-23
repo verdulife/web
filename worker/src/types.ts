@@ -48,6 +48,8 @@ export interface ErrorResponse {
 export interface KnowledgeIndexEntry {
   id: string;
   path: string;
+  /** Canonical project URL, present on project-kind entries. */
+  url?: string;
   title: string;
   description: string;
 }

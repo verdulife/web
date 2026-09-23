@@ -13,6 +13,7 @@ import {
 } from "./limits";
 import type { Limits } from "./limits";
 import { LinkMetaError, isFetchableUrl, resolveLinkMeta } from "./link-meta";
+import { resolveProjectCard } from "./project";
 import { buildSystemPrompt } from "./prompts";
 import type { Env } from "./types";
 import { normalizeWidgets } from "./widgets";
@@ -99,6 +100,14 @@ const LINK_META_UNAVAILABLE = {
   },
 };
 
+const PROJECT_NOT_FOUND_ERROR = {
+  error: {
+    code: "project_not_found",
+    message: "Proyecto no encontrado.",
+    retryable: false,
+  },
+};
+
 export interface HandlerDeps {
   rateLimiter: RateLimit;
   knowledge: KnowledgeProvider;
@@ -131,6 +140,10 @@ export function buildHandler(deps: HandlerDeps): (request: Request, env: Env) =>
       return handleLinkMeta(url, deps, cors);
     }
 
+    if (request.method === "GET" && url.pathname === "/api/project") {
+      return handleProject(url, deps, cors);
+    }
+
     return json(
       { error: { code: "not_found", message: "Recurso no encontrado.", retryable: false } },
       { status: 404 },
@@ -159,6 +172,26 @@ async function handleLinkMeta(
     console.error("[link-meta]", error instanceof Error ? error.message : error);
     return json(LINK_META_UNAVAILABLE, { status: 502 }, cors);
   }
+}
+
+async function handleProject(
+  url: URL,
+  deps: HandlerDeps,
+  cors: Record<string, string>,
+): Promise<Response> {
+  const slug = (url.searchParams.get("slug") ?? "").trim();
+  if (slug === "") {
+    return json(PROJECT_NOT_FOUND_ERROR, { status: 404 }, cors);
+  }
+
+  const card = await resolveProjectCard(slug, {
+    entries: deps.knowledge.index(),
+    fetchImpl: deps.fetchImpl,
+  });
+  if (card === null) {
+    return json(PROJECT_NOT_FOUND_ERROR, { status: 404 }, cors);
+  }
+  return json(card, undefined, cors);
 }
 
 async function handleChat(
