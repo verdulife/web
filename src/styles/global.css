@@ -543,15 +543,16 @@
      Flujo inline clásico (no flex): el label comparte la línea base del párrafo
      y solo el icono se alinea con vertical-align, evitando el desfase vertical
      que produce inline-flex + align-items:flex-start con fuente grande y
-     line-height compacto. */
+     line-height compacto. El label va acotado a ~20 chars con “…” (truncateLabel),
+     así que nowrap mantiene el widget en una sola línea sin riesgo de desborde. */
   .widget-link {
     display: inline;
     color: var(--color-ink);
     text-decoration: none;
+    white-space: nowrap;
   }
 
   .widget-link-label {
-    overflow-wrap: anywhere;
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 3px;
