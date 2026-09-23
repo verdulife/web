@@ -106,6 +106,10 @@ describe("GeminiOpenAIProvider request payload", () => {
     });
     expect(call.body.model).toBe("gemini-2.0-flash");
     expect(call.body.stream).toBe(false);
+    // Thinking budget capped by default (Gemini 3 thinking shares the output
+    // budget; verified live — without it replies come back empty and tool calls
+    // truncate into MALFORMED_FUNCTION_CALL).
+    expect(call.body.reasoning_effort).toBe("minimal");
     expect(call.body.max_tokens).toBe(128);
 
     // System message first, then the history untouched.
@@ -128,6 +132,15 @@ describe("GeminiOpenAIProvider request payload", () => {
 
     expect(result.text).toBe("Hola, ¿qué quieres saber?");
     expect(result.toolCalls).toBeNull();
+  });
+
+  it("accepts a custom reasoning_effort via the constructor", async () => {
+    const fetchImpl = makeFetch([jsonResponse({ choices: [{ message: { content: "Final" } }] })]);
+    const provider = new GeminiOpenAIProvider("sk-test", "gemini-2.0-flash", fetchImpl, "low");
+
+    await provider.generate(sampleRequest());
+
+    expect(captured(fetchImpl).body.reasoning_effort).toBe("low");
   });
 
   it("omits the tools field entirely when no tools are offered (settle turn)", async () => {
@@ -187,11 +200,12 @@ describe("GeminiOpenAIProvider request payload", () => {
         },
       ],
     });
-    // Tool result message passes through unchanged with its call pairing.
+    // Tool result message: stays paired with its call id, but the Workers-AI
+    // `name` field is dropped at the boundary (OpenAI tool messages carry only
+    // tool_call_id + content; the Gemini compat surface rejects the extra field).
     expect(messages[4]).toEqual({
       role: "tool",
       tool_call_id: "call_0",
-      name: "get_knowledge_document",
       content: '{"ok":true}',
     });
   });

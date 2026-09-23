@@ -26,12 +26,20 @@ const CHAT_COMPLETIONS_URL = `${GEMINI_OPENAI_BASE_URL}chat/completions`;
  * Gemini through the OpenAI-compatible chat/completions surface. Uses the
  * provider's model id as-is, never streams, and normalizes every success body
  * into the internal AiResponse contract.
+ *
+ * `reasoningEffort` defaults to "minimal": Gemini 3 models think before
+ * answering and the thinking consumes the SAME output budget as the final
+ * text (verified live 2026-02: without it, short max_tokens responses come
+ * back empty and function calls get truncated into MALFORMED_FUNCTION_CALL;
+ * with "minimal" the budget stays capped, latency drops to ~1s and tool calls
+ * come out complete).
  */
 export class GeminiOpenAIProvider implements AIProvider {
   constructor(
     private readonly apiKey: string,
     private readonly modelId: string,
     private readonly fetchImpl: typeof fetch = fetch,
+    private readonly reasoningEffort = "minimal",
   ) {}
 
   async generate(request: AiRequest): Promise<AiResponse> {
@@ -69,6 +77,7 @@ export class GeminiOpenAIProvider implements AIProvider {
     const payload: Record<string, unknown> = {
       model: this.modelId,
       stream: false,
+      reasoning_effort: this.reasoningEffort,
       max_tokens: request.maxTokens,
       // System message first, same pattern as CloudflareAIProvider.
       messages: [{ role: "system", content: request.system }, ...request.messages.map(mapMessage)],
@@ -109,7 +118,10 @@ function mapMessage(
     content:
       message.role === "assistant" && hasToolCalls && message.content === "" ? null : message.content,
   };
-  if (message.name !== undefined) mapped.name = message.name;
+  // OpenAI tool messages carry tool_call_id + content only; `name` (present in
+  // the loop's history, a Workers-AI-ism) is dropped at the boundary for the
+  // tool role to avoid a 400 on the Gemini compat surface.
+  if (message.role !== "tool" && message.name !== undefined) mapped.name = message.name;
   if (message.tool_calls !== undefined) mapped.tool_calls = message.tool_calls;
   if (message.tool_call_id !== undefined) mapped.tool_call_id = message.tool_call_id;
   return mapped;
