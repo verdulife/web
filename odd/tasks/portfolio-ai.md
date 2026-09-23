@@ -145,3 +145,16 @@ CORS: dev allow `http://localhost:4321`; no credentials. OPTIONS preflight 204.
 - Repo GitHub creado por el usuario: `github.com/verdulife/web`.
 - Pushed `main` + `feat/portfolio-ai`; user decided merge → **fast-forward a `main` (384c81d)** y eliminada `feat/portfolio-ai` (local + remoto). Solo existe `main`.
 - Deploy pendiente (decisión del usuario): Vercel (front, con `PUBLIC_WORKER_URL`) + `wrangler deploy` (worker, con `ALLOWED_ORIGINS` del dominio real). Ojo free tier neuronas con llama-3.3-70b (decenas de preguntas/día); alternativas frugales apuntadas (qwen3-30b-a3b-fp8, GLM-4.7-Flash).
+
+## Zero-cost AI strategy (2026-09-23)
+
+Context: Workers AI free tier exhausted its **10,000 neurons/day** (error 4006) — the 70B model burns it fast. Decision record:
+
+| Decision | Value |
+| --- | --- |
+| UI/widget testing today | **Local mock AI provider** (`AI_PROVIDER=mock`, dev-only) returning template replies with real widget tokens — see `worker:dev:mock` |
+| Production (pending real-data) | Decide after quota reset: (B) small Workers AI model (llama-3.2-3b-instruct or 3.1-8b, ~30-40x cheaper/call) + token diet, vs (C) Gemini API free tier (1,500 req/day, 1M TPM; EU exempt from training) proxied via the Worker |
+| Cost anchors (verified 2026) | Workers AI: 10k neurons/day free, $0.011/1k beyond; llama-3.2-3b ≈ 4,625 neurons/M input tokens (vs 70B ≈ 40x). Gemini free: 1,500 req/day Flash, 1M TPM, 15 RPM (Google AI docs); some CF models now require Paid (403) |
+| Fallback | Keep graceful `502 ai_unavailable` UX while quota/spend exhausted; document contact path |
+
+Mock contract: `AI_PROVIDER` env `"mock"` selects `MockAIProvider` in `handleChat` deps; keyword-routed canned replies (profile → image widget, contact → link widgets, default → mixed + a bare URL to demo auto-conversion); sources empty. Never set in deploy config (`[vars]` untouched); only `--var AI_PROVIDER:mock` on local dev.
