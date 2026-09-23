@@ -94,9 +94,21 @@ Worker normalizes the model reply before returning:
 - [x] W1 — done: `GET /api/link-meta` endpoint (fetch+parse, security, cache).
 - [x] W2 — done: widget token parser + bare-URL detection + normalization in chat response.
 - [x] W3 — done: system prompt documents widget syntax + rules.
-- [ ] W4 … W8 pending. Next: W4.
+- [x] W4 — done: client widget engine (registry + placeholder splitter + `PortfolioWidgets` API) — implemented together with W6 (same streaming path).
+- [x] W6 — done: client typewriter integration (pause/resolve/insert, hide raw URL) — commit c6b56cb.
+- [x] W5 — done: client link renderer + `/api/link-meta` fetch + session cache — commit eb4ad8d.
+- [x] W7 — done: CSS `.widget-link` styles (inline-flex, label underline, 16px favicon, monochrome) — commit e945906.
+- [x] W8 — done: contract/docs + end-to-end verification — commit (this unit).
 
 ## Verification evidence
+
+W8 (gentle-ai-verify + live smoke):
+
+- `cd worker && bun run check` → exit 0; `bun run test` → 7 files / 138 tests pass.
+- `bun run check` (root) → 0 errors/0 warnings/0 hints (18 files); `bun run build` → exit 0, 16 pages.
+- Greps: `innerHTML` in conversation.js only in the pre-existing security comment; 1× `register("link")`; `setLinkMetaResolver` definition + init wiring; `.widget-link` rules in global.css; WIDGET_NOTE defined + appended.
+- Live smoke (wrangler dev, remote AI): `/api/link-meta` resolved og:title (“Astro”), `<title>` (GitHub “verdulife - Overview”), 400 on `javascript:`/empty, 502 graceful on bot-blocked (LinkedIn). `/api/chat` returned `[[widget:0]]/[[widget:1]]` + validated `widgets` (LinkedIn, GitHub) — model emits WIDGET_NOTE tokens, worker normalizes, contract holds end-to-end.
+- Browser visual E2E: pending user confirmation on localhost:4321.
 
 W3 (prompt, verified by gentle-ai-verify):
 
