@@ -24,7 +24,6 @@ const knowledge = defineCollection({
     ]),
     title: z.string(),
     description: z.string(),
-    url: z.string().optional(),
   }),
 });
 
