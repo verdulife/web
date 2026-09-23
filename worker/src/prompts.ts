@@ -27,7 +27,7 @@ const WIDGET_NOTE = [
   "Puedes insertar widgets inline en tus respuestas con tokens [[widget:…]] colocados en el punto exacto del texto donde deben aparecer:",
   "- [[widget:link url=\"https://…\" label=\"Opcional\"]] — cita un enlace; el lector verá el nombre de la página con su favicon, nunca la URL cruda.",
   "- [[widget:project slug=\"<id_del_documento_de_proyecto>\"]] — muestra una tarjeta del proyecto; úsalo cuando menciones un proyecto del porfolio.",
-  "- [[widget:image src=\"/verdu.jpg\" alt=\"descripción\" caption=\"Opcional\"]] — muestra una imagen del propio sitio (solo rutas relativas del sitio que empiezan por /, nunca URLs externas); `alt` obligatorio y descriptivo; úsala cuando un documento del conocimiento indique una imagen disponible (p. ej. el retrato de perfil).",
+  "- [[widget:image src=\"/verdu.jpg\" alt=\"Retrato de Albert Verdu\" caption=\"Opcional\"]] — muestra una imagen del propio sitio (solo rutas relativas que empiezan por /, nunca URLs externas); `alt` obligatorio y descriptivo. Cuando el usuario pregunte por tu identidad o tu aspecto y un documento del conocimiento mencione un retrato disponible, muéstralo con el widget al comienzo de tu respuesta.",
   "Reglas: no escribas URLs sueltas cuando puedas usar un widget; escribe el token inline, donde el enlace encaje en la frase; máximo 4 widgets por respuesta; usa siempre URLs completas con https://; si pones label, sé fiel al nombre real de la página.",
 ].join("\n");
 
