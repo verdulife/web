@@ -23,8 +23,8 @@ function mockFetchNotOk() {
 }
 
 const index: KnowledgeIndexEntry[] = [
-  { id: "gaplogic", path: "projects/gaplogic", title: "Gaplogic", description: "Web y ecosistema digital de Gaplogic." },
-  { id: "about", path: "about", title: "Sobre mí", description: "Perfil de Albert Verdu." },
+  { id: "gaplogic", path: "projects/gaplogic", kind: "project", title: "Gaplogic", description: "Web y ecosistema digital de Gaplogic." },
+  { id: "about", path: "about", kind: "about", title: "Sobre mí", description: "Perfil de Albert Verdu." },
 ];
 
 afterEach(() => {

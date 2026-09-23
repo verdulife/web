@@ -192,3 +192,25 @@ Project widget progress (verified):
 
 - [x] P2 — done: link-meta OG enrichment — `LinkMeta` gains optional `ogTitle?` / `ogDescription?` / `ogImage?` / `ogSiteName?` (existing fields stable). New exported helpers `extractOgProperty(html, property)` (entity-decoded, whitespace-collapsed, attribute-order independent, case-insensitive), `extractMetaDescription(html)` (ogDescription fallback), plus `resolveOgImage` (relative resolved to absolute, http(s) only). Caps: title 200, description 400, siteName 100, image 2000 (oversized image dropped). `cd worker && bun run check` → exit 0; `cd worker && bun run test` → 9 files / 186 tests pass (35 in link-meta, incl. og extraction, fallback, absent-fields, caps, non-http scheme; route 200 body now asserts `ogTitle`).
 - [x] P3 — done: `GET /api/project?slug=` — new `worker/src/project.ts` (`resolveProjectCard(slug, { entries, fetchImpl?, now? })` → `ProjectCard` with knowledge-doc title/description + live OG (domain, image, siteName (ogSiteName ?? domain), iconUrl); unknown slug → null; OG failure non-fatal → doc-only card still 200; module cache by slug TTL 1h / 50 entries, clearable). `types.ts` gains `url?: string` on `KnowledgeIndexEntry` (snapshot index carries 14 project urls). Route: missing/blank slug or null → 404 `{ error: { code: "project_not_found", message: "Proyecto no encontrado.", retryable: false } }` with CORS echo; found → 200 ProjectCard. Evidence: `bun run check` exit 0; project.test.ts 11 tests (doc+OG merge, og:site_name→domain fallback, no-url doc-only, fetch rejection, non-fetchable url, cache hit w/o second fetch, route 200/404 + CORS). Live smoke still pending under P7.
+
+## Projects scroller widget — 4th type (added 2026-09-23, revised: in-widget)
+
+User revision: the horizontal scroll + peek + mask is for the PROJECT WIDGET (all projects in the chat), NOT the static page (which was reverted, faa09bc).
+
+| Decision | Value |
+| --- | --- |
+| Token | `[[widget:projects]]` (bare, block) — shows ALL projects in a horizontal scroller |
+| Data | `GET /api/projects` → doc-level list `{ slug, title, description, url? }` sorted by title (no OG fetch) |
+| Presentation | Horizontal scroller inside the thread: snap, hidden scrollbar, edge mask gradient, peek card (basis clamp), same look as the reverted page cards (editorial, mono index + sitio ↗) |
+| Prompt/mock | prompt: all-projects question → this token (single project still → `project slug`); mock "proyectos" route → `[[widget:projects]]` |
+
+| ID | Task | Checks |
+| --- | --- | --- |
+| [x] Q1 | Worker: "projects" in allowlist (bare token) + GET /api/projects list + prompt bullet + mock route | unit tests + live smoke |
+| Q2 | Client: register "projects" block renderer (fetch list cached, scroller DOM) | harness + astro check |
+| Q3 | CSS: .projects-scroller (.track/.card, snap, hidden scrollbar, mask) | visual review |
+| Q4 | Verification: suite + E2E scroller | all prior checks |
+
+Projects scroller progress (verified):
+
+- [x] Q1 — done: worker support for the `projects` widget — `"projects"` added to `WIDGET_TYPE_ALLOWLIST`; `parseToken` accepts a bare `[[widget:projects]]` (no required params; extra key/value attrs parsed but ignored) → `{ type: "projects" }`; new `worker/src/projects.ts` (`ProjectListItem` + `listProjectCards`: filters runtime `kind === "project"`, maps `{ slug: id, title, description, url: url || undefined }`, sorts by `title.localeCompare(title, "es")`, pure/sync); `GET /api/projects` → `json({ projects: [... ] }, undefined, cors)` with CORS echo like the other routes, empty array is 200 (no 404); WIDGET_NOTE gains the `[[widget:projects]]` bullet (all-projects question → this token; single project still → `project slug`); mock PROJECT_KEYWORDS reply is now `"Aquí tienes todos mis proyectos:\n\n[[widget:projects]]"` so the scroller is testable in the UI. Evidence: `cd worker && bun run check` → exit 0 (tsc clean); `cd worker && bun run test` → 10 files / 200 tests pass (187 prior + 13 new: +3 in widgets.test.ts, +9 in new tests/projects.test.ts, +1 in mock.test.ts). Route returns all 20 project entries from the real bundled index; 1-entry fixture JSON: `{"projects":[{"slug":"botanic","title":"Botanic","description":"Marketplace P2P de plantas.","url":"https://botanic.example.com/"}]}`. Note: `kind` is a runtime field of the generated index but not declared on `KnowledgeIndexEntry` (types.ts unchanged); `listProjectCards` reads it via a local intersection. Live UI smoke still pending under Q4.

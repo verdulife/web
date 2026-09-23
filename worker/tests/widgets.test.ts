@@ -66,6 +66,28 @@ describe("normalizeWidgets", () => {
     });
   });
 
+  describe("projects tokens", () => {
+    it("converts a bare projects token without any attributes", () => {
+      const result = normalizeWidgets("Todos mis proyectos:\n\n[[widget:projects]]");
+      expect(result.reply).toBe("Todos mis proyectos:\n\n[[widget:0]]");
+      expect(result.widgets).toEqual([{ index: 0, type: "projects" }]);
+    });
+
+    it("keeps a projects token with extra attributes (ignored, not dropped)", () => {
+      const result = normalizeWidgets('[[widget:projects limit="5" theme="dark"]]');
+      expect(result.reply).toBe("[[widget:0]]");
+      expect(result.widgets).toEqual([{ index: 0, type: "projects" }]);
+    });
+
+    it("matches only the exact 'projects' type name", () => {
+      // The singular bare token is not a valid project token (slug required).
+      expect(normalizeWidgets("[[widget:project]]")).toEqual({ reply: "", widgets: [] });
+      // A close plural variant is an unknown type and gets dropped.
+      expect(normalizeWidgets("[[widget:projectsx]]")).toEqual({ reply: "", widgets: [] });
+      expect(normalizeWidgets("[[widget:proyectos]]")).toEqual({ reply: "", widgets: [] });
+    });
+  });
+
   describe("image tokens", () => {
     it("converts a valid image token with src and alt", () => {
       const result = normalizeWidgets(
@@ -351,7 +373,7 @@ describe("isSiteImagePath", () => {
 
 describe("exported constants", () => {
   it("exposes the widget type allowlist and limits", () => {
-    expect(Array.from(WIDGET_TYPE_ALLOWLIST)).toEqual(["link", "project", "image"]);
+    expect(Array.from(WIDGET_TYPE_ALLOWLIST)).toEqual(["link", "project", "image", "projects"]);
     expect(MAX_WIDGETS).toBe(4);
     expect(MAX_URL).toBe(2000);
     expect(MAX_LABEL).toBe(120);

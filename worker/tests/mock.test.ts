@@ -62,14 +62,15 @@ describe("mockReplyFor (pure keyword router)", () => {
     expect(reply).toContain('url="https://github.com/verdulife"');
   });
 
-  it("routes proyecto/trabajos questions to the project card widgets", () => {
+  it("routes proyecto/trabajos questions to the projects scroller widget", () => {
     const reply = mockReplyFor("muéstrame tus proyectos");
-    expect(reply.match(/\[\[widget:project/g)).toHaveLength(2);
-    expect(reply).toContain('slug="kncelados"');
-    expect(reply).toContain('slug="botanic"');
+    expect(reply).toBe("Aquí tienes todos mis proyectos:\n\n[[widget:projects]]");
+    expect(reply.match(/\[\[widget:projects\]\]/g)).toHaveLength(1);
+    expect(reply).not.toContain("[[widget:project ");
+
     const normalized = normalizeWidgets(reply);
-    expect(normalized.widgets.map((widget) => widget.type)).toEqual(["project", "project"]);
-    expect(normalized.reply).not.toContain("[[widget:project");
+    expect(normalized.widgets).toEqual([{ index: 0, type: "projects" }]);
+    expect(normalized.reply).toBe("Aquí tienes todos mis proyectos:\n\n[[widget:0]]");
   });
 
   it("falls back to a default reply with a bare URL for any other question", () => {
@@ -173,6 +174,23 @@ describe("mock pipeline (AI_PROVIDER=mock selects MockAIProvider)", () => {
     });
     expect(body.reply).not.toContain("[[widget:link");
     expect(body.reply.match(/\[\[widget:\d+\]\]/g)).toHaveLength(2);
+    expect(body.sources).toEqual([]);
+  });
+
+  it("answers a projects question with a normalized projects widget", async () => {
+    const response = await workerDefault.fetch(
+      chatRequest({ messages: [{ role: "user", content: "¿qué proyectos tienes?" }] }),
+      makeEnv({ AI_PROVIDER: "mock" }),
+      {},
+    );
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as ChatResponse;
+    expect(body.widgets).toHaveLength(1);
+    expect(body.widgets?.[0]).toEqual({ index: 0, type: "projects" });
+    expect(body.reply).toContain("[[widget:0]]");
+    expect(body.reply).not.toContain("[[widget:projects");
+    expect(body.reply).not.toContain("[[widget:project ");
     expect(body.sources).toEqual([]);
   });
 });

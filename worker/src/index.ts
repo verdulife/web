@@ -14,6 +14,7 @@ import {
 import type { Limits } from "./limits";
 import { LinkMetaError, isFetchableUrl, resolveLinkMeta } from "./link-meta";
 import { resolveProjectCard } from "./project";
+import { listProjectCards } from "./projects";
 import { buildSystemPrompt } from "./prompts";
 import type { Env } from "./types";
 import { normalizeWidgets } from "./widgets";
@@ -142,6 +143,10 @@ export function buildHandler(deps: HandlerDeps): (request: Request, env: Env) =>
 
     if (request.method === "GET" && url.pathname === "/api/project") {
       return handleProject(url, deps, cors);
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/projects") {
+      return json({ projects: listProjectCards(deps.knowledge.index()) }, undefined, cors);
     }
 
     return json(

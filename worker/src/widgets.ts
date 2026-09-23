@@ -10,17 +10,19 @@ import { isFetchableUrl } from "./link-meta";
  *
  * Grammar (ASCII only):
  *   [[widget:type key="value" key2="value2" ...]]
- * Type must be in the allowlist (`link`, `project`, `image`). `link` requires a
- * fetchable `url`; `project` requires a `slug`; `image` requires a site-relative
- * `src` (leading `/`, no `..` segment) and a descriptive `alt`. Any unknown
- * type, malformed token, or token missing a required field is dropped (not
- * echoed). Valid tokens/bare URLs beyond {@link MAX_WIDGETS} are also dropped.
+ * Type must be in the allowlist (`link`, `project`, `image`, `projects`).
+ * `link` requires a fetchable `url`; `project` requires a `slug`; `image`
+ * requires a site-relative `src` (leading `/`, no `..` segment) and a
+ * descriptive `alt`; `projects` is a bare token with no required params (any
+ * extra key/value pairs are ignored). Any unknown type, malformed token, or
+ * token missing a required field is dropped (not echoed). Valid tokens/bare
+ * URLs beyond {@link MAX_WIDGETS} are also dropped.
  */
 
 export interface Widget {
   /** 0-based order of appearance in the reply. */
   index: number;
-  type: "link" | "project" | "image" | string;
+  type: "link" | "project" | "image" | "projects" | string;
   url?: string;
   label?: string;
   slug?: string;
@@ -51,7 +53,7 @@ export const MAX_IMAGE_SRC = 200;
 export const MAX_IMAGE_TEXT = 200;
 
 /** Server-side allowlist of accepted widget types. */
-export const WIDGET_TYPE_ALLOWLIST = ["link", "project", "image"] as const;
+export const WIDGET_TYPE_ALLOWLIST = ["link", "project", "image", "projects"] as const;
 
 const TOKEN_OPEN = "[[widget:";
 const PLACEHOLDER = (index: number): string => `[[widget:${index}]]`;
@@ -160,6 +162,12 @@ function parseToken(
     const caption = (attrs.get("caption") ?? "").trim();
     if (caption !== "") widget.caption = caption.slice(0, MAX_IMAGE_TEXT);
     return { widget, consumed };
+  }
+
+  // type === "projects": a bare token rendering every project; no required
+  // params. Extra key/value attributes are parsed but intentionally ignored.
+  if (type === "projects") {
+    return { widget: { type: "projects" }, consumed };
   }
 
   // type === "project"

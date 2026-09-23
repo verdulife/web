@@ -32,6 +32,7 @@ const ENTRIES: KnowledgeIndexEntry[] = [
   {
     id: "botanic",
     path: "projects/botanic",
+    kind: "project",
     title: "Botanic",
     description: "Vivero y jardinería en Barcelona.",
     url: "https://botanic.example.com/",
@@ -39,6 +40,7 @@ const ENTRIES: KnowledgeIndexEntry[] = [
   {
     id: "gaplogic",
     path: "projects/gaplogic",
+    kind: "project",
     title: "GAP Logic",
     description: "Lógica de producto para webs.",
     url: "https://gaplogic.example.com/",
@@ -46,6 +48,7 @@ const ENTRIES: KnowledgeIndexEntry[] = [
   {
     id: "kncelados",
     path: "projects/kncelados",
+    kind: "project",
     title: "Kncelados",
     description: "Cerramientos de obra.",
   },
@@ -126,6 +129,7 @@ describe("resolveProjectCard", () => {
       {
         id: "botanic",
         path: "projects/botanic",
+        kind: "project",
         title: "Botanic",
         description: "Vivero y jardinería en Barcelona.",
         url: "mailto:hola@example.com",

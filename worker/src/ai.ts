@@ -238,11 +238,7 @@ export function mockReplyFor(lastUserText: string): string {
     );
   }
   if (PROJECT_KEYWORDS.some((keyword) => text.includes(keyword))) {
-    return (
-      "Te enseño dos de mis proyectos:" +
-      "\n\n[[widget:project slug=\"kncelados\"]]" +
-      "\n\n[[widget:project slug=\"botanic\"]]"
-    );
+    return "Aquí tienes todos mis proyectos:\n\n[[widget:projects]]";
   }
   return (
     "Trabajo en proyectos web con Astro y Cloudflare; por ejemplo " +
