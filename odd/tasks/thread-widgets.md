@@ -89,6 +89,32 @@ Worker normalizes the model reply before returning:
 | W7 | CSS: `.widget-link` styles (inline, underline, favicon) in `global.css` | visual review on thread |
 | W8 | Contract/docs + end-to-end verification (worker suite + chat smoke + browser) | all prior checks + manual E2E recorded |
 
+## Image widget — second type (added 2026-09-23)
+
+Second widget type on the same protocol, user-requested: show a site image (example: asking about the profile loads `/verdu.jpg`).
+
+| Decision | Value |
+| --- | --- |
+| Image origin | Site-relative paths only (`/verdu.jpg`), validated by shape (leading `/`, no `..`, no `//`) |
+| Presentation | Block figure inside the thread: max width ~78%, subtle border/radius, optional mono uppercase caption |
+| Token | `[[widget:image src="/verdu.jpg" alt="Albert Verdu" caption="Opcional"]]` — `src` + `alt` required, `caption` optional (all capped 200) |
+
+Tasks:
+
+| ID | Task | Checks |
+| --- | --- | --- |
+| [x] I1 | Worker: `image` type in allowlist + `isSiteImagePath` validation (`src`, `alt`, `caption`) | widget unit tests (valid/invalid/escaping/absolute URL rejected) |
+| [x] I2 | Worker: prompt documents the image token and when to use it | prompt readback + live smoke |
+| I3 | Knowledge: `about.md` mentions the available portrait asset; regenerate snapshot | `worker:gen` + diff |
+| I4 | Client: `image` renderer (figure span + img + optional caption) | engine harness + `astro check` |
+| I5 | CSS: `.widget-image` figure styles | visual review |
+| I6 | Verification: worker suite + live smoke (ask about the profile) | all prior checks |
+
+Image widget progress (verified):
+
+- [x] I1 — done: `image` in allowlist + `isSiteImagePath` validation — `cd worker && bun run check` → exit 0 (`tsc --noEmit`, no type errors); `cd worker && bun run test` → 7 files / 158 tests pass (138 prior + 20 new, all in `tests/widgets.test.ts`, 25 → 45).
+- [x] I2 — done: prompt documents the image token — prompt readback confirms the `[[widget:image src="/verdu.jpg" alt="descripción" caption="Opcional"]]` bullet in WIDGET_NOTE with the site-relative-only rule, mandatory `alt`, and when to use it (portrait asset).
+
 ## Progress
 
 - [x] W1 — done: `GET /api/link-meta` endpoint (fetch+parse, security, cache).
@@ -129,4 +155,4 @@ W1 (worker vitest + `tsc --noEmit`):
 
 ## Next step
 
-Confirm VCS strategy with user (work-unit commits on feature branch vs. working-tree only), then implement W1.
+Implement the image widget (I1 → I6); link widget closed and committed.

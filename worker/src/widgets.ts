@@ -10,19 +10,26 @@ import { isFetchableUrl } from "./link-meta";
  *
  * Grammar (ASCII only):
  *   [[widget:type key="value" key2="value2" ...]]
- * Type must be in the allowlist (`link`, `project`). `link` requires a
- * fetchable `url`; `project` requires a `slug`. Any unknown type, malformed
- * token, or token missing a required field is dropped (not echoed). Valid
- * tokens/bare URLs beyond {@link MAX_WIDGETS} are also dropped.
+ * Type must be in the allowlist (`link`, `project`, `image`). `link` requires a
+ * fetchable `url`; `project` requires a `slug`; `image` requires a site-relative
+ * `src` (leading `/`, no `..` segment) and a descriptive `alt`. Any unknown
+ * type, malformed token, or token missing a required field is dropped (not
+ * echoed). Valid tokens/bare URLs beyond {@link MAX_WIDGETS} are also dropped.
  */
 
 export interface Widget {
   /** 0-based order of appearance in the reply. */
   index: number;
-  type: "link" | "project" | string;
+  type: "link" | "project" | "image" | string;
   url?: string;
   label?: string;
   slug?: string;
+  /** Site-relative image path (image widget). */
+  src?: string;
+  /** Required, descriptive alternative text (image widget). */
+  alt?: string;
+  /** Optional, truncated caption (image widget). */
+  caption?: string;
 }
 
 export interface NormalizedReply {
@@ -38,9 +45,13 @@ export const MAX_URL = 2000;
 export const MAX_LABEL = 120;
 /** Maximum length of a project `slug` value. */
 export const MAX_SLUG = 64;
+/** Maximum length of an image `src` path (longer rejected). */
+export const MAX_IMAGE_SRC = 200;
+/** Maximum length of image `alt`/`caption` text (alt drops, caption truncates). */
+export const MAX_IMAGE_TEXT = 200;
 
 /** Server-side allowlist of accepted widget types. */
-export const WIDGET_TYPE_ALLOWLIST = ["link", "project"] as const;
+export const WIDGET_TYPE_ALLOWLIST = ["link", "project", "image"] as const;
 
 const TOKEN_OPEN = "[[widget:";
 const PLACEHOLDER = (index: number): string => `[[widget:${index}]]`;
@@ -57,6 +68,26 @@ const TOKEN_BODY_RE = /^([a-z][a-z0-9-]*)((?:\s+[A-Za-z0-9_-]+="[^"]*")*)(\s*)$/
 const ATTR_RE = /([A-Za-z0-9_-]+)="([^"]*)"/g;
 
 const SLUG_RE = /^[a-z0-9-]+$/;
+
+/**
+ * A site image path: exactly one leading `/`, then only ASCII URL-path
+ * characters (`A-Za-z0-9._~/-`). Query strings, fragments, spaces and any
+ * percent-encoding fall outside the class and are rejected verbatim.
+ */
+const SITE_IMAGE_RE = /^\/[A-Za-z0-9._~/-]*$/;
+
+/**
+ * True when `raw` is a valid site-relative image path: must start with a single
+ * `/` (never `//`), contain only `[A-Za-z0-9._~/-]`, have no path segment that
+ * is exactly `..`, and fit within {@link MAX_IMAGE_SRC}. Nothing is decoded:
+ * the value is validated literally as given (e.g. `%20` is rejected).
+ */
+export function isSiteImagePath(raw: string): boolean {
+  if (raw.length === 0 || raw.length > MAX_IMAGE_SRC) return false;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return false;
+  if (!SITE_IMAGE_RE.test(raw)) return false;
+  return !raw.split("/").some((segment) => segment === "..");
+}
 
 const ALLOWED_TYPES = new Set<string>(WIDGET_TYPE_ALLOWLIST);
 
@@ -115,6 +146,19 @@ function parseToken(
     const widget: Omit<Widget, "index"> = { type: "link", url };
     const label = (attrs.get("label") ?? "").trim();
     if (label !== "") widget.label = label.slice(0, MAX_LABEL);
+    return { widget, consumed };
+  }
+
+  // type === "image": site-only paths; `src` + `alt` required, `caption` optional.
+  if (type === "image") {
+    const src = attrs.get("src") ?? "";
+    const alt = (attrs.get("alt") ?? "").trim();
+    if (src === "" || !isSiteImagePath(src) || alt === "" || alt.length > MAX_IMAGE_TEXT) {
+      return { widget: null, consumed };
+    }
+    const widget: Omit<Widget, "index"> = { type: "image", src, alt };
+    const caption = (attrs.get("caption") ?? "").trim();
+    if (caption !== "") widget.caption = caption.slice(0, MAX_IMAGE_TEXT);
     return { widget, consumed };
   }
 

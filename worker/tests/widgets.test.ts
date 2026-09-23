@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  MAX_IMAGE_SRC,
+  MAX_IMAGE_TEXT,
   MAX_LABEL,
   MAX_SLUG,
   MAX_URL,
   MAX_WIDGETS,
   WIDGET_TYPE_ALLOWLIST,
+  isSiteImagePath,
   normalizeWidgets,
 } from "../src/widgets";
 
@@ -63,9 +66,133 @@ describe("normalizeWidgets", () => {
     });
   });
 
+  describe("image tokens", () => {
+    it("converts a valid image token with src and alt", () => {
+      const result = normalizeWidgets(
+        'Retrato [[widget:image src="/verdu.jpg" alt="Albert Verdu"]] aquí',
+      );
+      expect(result.reply).toBe("Retrato [[widget:0]] aquí");
+      expect(result.widgets).toEqual([
+        { index: 0, type: "image", src: "/verdu.jpg", alt: "Albert Verdu" },
+      ]);
+    });
+
+    it("keeps an optional caption on a valid image token", () => {
+      const result = normalizeWidgets(
+        '[[widget:image src="/verdu.jpg" alt="Albert Verdu" caption="Opcional"]]',
+      );
+      expect(result.reply).toBe("[[widget:0]]");
+      expect(result.widgets[0]).toEqual({
+        index: 0,
+        type: "image",
+        src: "/verdu.jpg",
+        alt: "Albert Verdu",
+        caption: "Opcional",
+      });
+    });
+
+    it("omits caption when absent and trims whitespace-only captions", () => {
+      const noCaption = normalizeWidgets('[[widget:image src="/verdu.jpg" alt="Albert Verdu"]]');
+      expect(noCaption.widgets[0]).not.toHaveProperty("caption");
+
+      const blankCaption = normalizeWidgets(
+        '[[widget:image src="/verdu.jpg" alt="Albert Verdu" caption="   "]]',
+      );
+      expect(blankCaption.widgets[0]).not.toHaveProperty("caption");
+    });
+
+    it("drops an image token missing its src", () => {
+      const result = normalizeWidgets('[[widget:image alt="Albert Verdu"]]');
+      expect(result).toEqual({ reply: "", widgets: [] });
+    });
+
+    it("drops an image token missing its alt", () => {
+      const result = normalizeWidgets('[[widget:image src="/verdu.jpg"]]');
+      expect(result).toEqual({ reply: "", widgets: [] });
+    });
+
+    it("drops an image token whose alt is blank after trimming", () => {
+      const result = normalizeWidgets('[[widget:image src="/verdu.jpg" alt="   "]]');
+      expect(result).toEqual({ reply: "", widgets: [] });
+    });
+
+    it("rejects absolute, protocol or non-site src values", () => {
+      for (const bad of [
+        '[[widget:image src="https://cdn.example.com/x.png" alt="a"]]',
+        '[[widget:image src="//cdn.example.com/x.png" alt="a"]]',
+        '[[widget:image src="verdu.jpg" alt="a"]]',
+        '[[widget:image src="/a/../b.jpg" alt="a"]]',
+        '[[widget:image src="/../b.jpg" alt="a"]]',
+      ]) {
+        expect(normalizeWidgets(bad)).toEqual({ reply: "", widgets: [] });
+      }
+    });
+
+    it("rejects src values with spaces or disallowed characters", () => {
+      for (const bad of [
+        '[[widget:image src="/a b.jpg" alt="a"]]',
+        '[[widget:image src="/a?b.jpg" alt="a"]]',
+        '[[widget:image src="/a#b.jpg" alt="a"]]',
+        '[[widget:image src="/a\\b.jpg" alt="a"]]',
+        '[[widget:image src="/a%20b.jpg" alt="a"]]',
+      ]) {
+        expect(normalizeWidgets(bad)).toEqual({ reply: "", widgets: [] });
+      }
+    });
+
+    it("allows dot segments that are not exactly '..'", () => {
+      const ok = normalizeWidgets('[[widget:image src="/assets/img/..foo.jpg" alt="a"]]');
+      expect(ok.widgets).toEqual([
+        { index: 0, type: "image", src: "/assets/img/..foo.jpg", alt: "a" },
+      ]);
+    });
+
+    it("drops a src longer than the cap", () => {
+      const src = `/${"a".repeat(MAX_IMAGE_SRC)}.jpg`;
+      const result = normalizeWidgets(`[[widget:image src="${src}" alt="a"]]`);
+      expect(result).toEqual({ reply: "", widgets: [] });
+    });
+
+    it("drops an alt longer than the cap (required content, no silent truncation)", () => {
+      const alt = "x".repeat(MAX_IMAGE_TEXT + 1);
+      const result = normalizeWidgets(`[[widget:image src="/verdu.jpg" alt="${alt}"]]`);
+      expect(result).toEqual({ reply: "", widgets: [] });
+    });
+
+    it("truncates a caption longer than the cap to MAX_IMAGE_TEXT", () => {
+      const caption = "y".repeat(MAX_IMAGE_TEXT + 10);
+      const result = normalizeWidgets(
+        `[[widget:image src="/verdu.jpg" alt="Albert Verdu" caption="${caption}"]]`,
+      );
+      expect(result.widgets[0].caption).toBe("y".repeat(MAX_IMAGE_TEXT));
+    });
+
+    it("preserves order and indexes when a link token precedes an image token", () => {
+      const result = normalizeWidgets(
+        '[[widget:link url="https://example.com"]] y [[widget:image src="/verdu.jpg" alt="Albert Verdu"]]',
+      );
+      expect(result.reply).toBe("[[widget:0]] y [[widget:1]]");
+      expect(result.widgets).toEqual([
+        { index: 0, type: "link", url: "https://example.com" },
+        { index: 1, type: "image", src: "/verdu.jpg", alt: "Albert Verdu" },
+      ]);
+    });
+
+    it("preserves order and indexes when an image token precedes a link token", () => {
+      const result = normalizeWidgets(
+        '[[widget:image src="/verdu.jpg" alt="Albert Verdu"]] y [[widget:link url="https://example.com"]]',
+      );
+      expect(result.reply).toBe("[[widget:0]] y [[widget:1]]");
+      expect(result.widgets).toEqual([
+        { index: 0, type: "image", src: "/verdu.jpg", alt: "Albert Verdu" },
+        { index: 1, type: "link", url: "https://example.com" },
+      ]);
+    });
+  });
+
   describe("invalid and malformed tokens", () => {
     it("drops a token with an unknown type", () => {
-      const result = normalizeWidgets('[[widget:image url="https://example.com/pic.png"]]');
+      const result = normalizeWidgets('[[widget:chart url="https://example.com/pic.png"]]');
       expect(result).toEqual({ reply: "", widgets: [] });
     });
 
@@ -184,13 +311,53 @@ describe("normalizeWidgets", () => {
   });
 });
 
+describe("isSiteImagePath", () => {
+  it("accepts a plain site-relative path", () => {
+    expect(isSiteImagePath("/verdu.jpg")).toBe(true);
+    expect(isSiteImagePath("/assets/img/retrato.png")).toBe(true);
+    expect(isSiteImagePath("/a/b/c.jpg")).toBe(true);
+  });
+
+  it("accepts a segment starting with two dots as long as it is not exactly '..'", () => {
+    expect(isSiteImagePath("/assets/..foo.jpg")).toBe(true);
+  });
+
+  it("rejects absolute, protocol-relative and non-rooted values", () => {
+    expect(isSiteImagePath("https://example.com/x.png")).toBe(false);
+    expect(isSiteImagePath("//cdn.example.com/x.png")).toBe(false);
+    expect(isSiteImagePath("verdu.jpg")).toBe(false);
+    expect(isSiteImagePath("")).toBe(false);
+  });
+
+  it("rejects traversal segments", () => {
+    expect(isSiteImagePath("/../x.jpg")).toBe(false);
+    expect(isSiteImagePath("/a/../b.jpg")).toBe(false);
+  });
+
+  it("rejects disallowed characters verbatim (no decoding)", () => {
+    expect(isSiteImagePath("/a%20b.jpg")).toBe(false);
+    expect(isSiteImagePath("/a?b.jpg")).toBe(false);
+    expect(isSiteImagePath("/a#b.jpg")).toBe(false);
+    expect(isSiteImagePath("/a b.jpg")).toBe(false);
+    expect(isSiteImagePath("/a\\b.jpg")).toBe(false);
+    expect(isSiteImagePath("/a:b.jpg")).toBe(false);
+  });
+
+  it("rejects a path longer than the cap", () => {
+    expect(isSiteImagePath(`/${"a".repeat(MAX_IMAGE_SRC)}.jpg`)).toBe(false);
+    expect(isSiteImagePath(`/${"a".repeat(MAX_IMAGE_SRC - 1)}`)).toBe(true);
+  });
+});
+
 describe("exported constants", () => {
   it("exposes the widget type allowlist and limits", () => {
-    expect(Array.from(WIDGET_TYPE_ALLOWLIST)).toEqual(["link", "project"]);
+    expect(Array.from(WIDGET_TYPE_ALLOWLIST)).toEqual(["link", "project", "image"]);
     expect(MAX_WIDGETS).toBe(4);
     expect(MAX_URL).toBe(2000);
     expect(MAX_LABEL).toBe(120);
     expect(MAX_SLUG).toBe(64);
+    expect(MAX_IMAGE_SRC).toBe(200);
+    expect(MAX_IMAGE_TEXT).toBe(200);
   });
 });
 
