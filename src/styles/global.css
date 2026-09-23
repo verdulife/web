@@ -707,6 +707,7 @@
     max-width: 100%;
     overflow-x: auto;
     scroll-snap-type: x proximity;
+    scroll-padding-inline: 1.25rem; /* el snap ancla 1.25rem dentro del scrollport (igual que el sangrado del track) */
     scroll-behavior: smooth;
     scrollbar-width: none; /* Firefox: oculta la barra del carrusel */
     /* Edge fade: la siguiente tarjeta se entrevé sin corte duro en el borde. */
@@ -723,12 +724,14 @@
     display: none; /* WebKit/Blink: equivalente a scrollbar-width:none */
   }
 
+  /* El sangrado lateral vive en el track (no en el scroller): así es espacio
+     real del contenido y se respeta en la posición inicial y en los topes. */
   .projects-track {
     display: flex;
     gap: 1.25rem;
     list-style: none;
     margin: 0;
-    padding: 0;
+    padding-inline: 1.25rem;
   }
 
   .projects-card {
