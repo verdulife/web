@@ -39,7 +39,8 @@
     "path": "projects/calandraautomobili",
     "kind": "project",
     "title": "Calandra Automobili",
-    "description": "Sitio web de Calandra Automobili, negocio de automoción, desarrollado por Albert Verdu."
+    "description": "Sitio web de Calandra Automobili, negocio de automoción, desarrollado por Albert Verdu.",
+    "url": "https://www.calandraautomobili.com/"
   },
   {
     "id": "facturasgratis",
@@ -60,28 +61,32 @@
     "path": "projects/gaplogic",
     "kind": "project",
     "title": "Gaplogic",
-    "description": "Web y ecosistema digital de Gaplogic: web WordPress, POS gapcloud y reporte de tareas."
+    "description": "Web y ecosistema digital de Gaplogic: web WordPress, POS gapcloud y reporte de tareas.",
+    "url": "https://testing.gaplogic.com"
   },
   {
     "id": "gaudioart",
     "path": "projects/gaudioart",
     "kind": "project",
     "title": "Gaudio Art | Diseño de trofeos exclusivos",
-    "description": "Diseño de trofeos exclusivos."
+    "description": "Diseño de trofeos exclusivos.",
+    "url": "https://www.gaudiobarcelona.com/"
   },
   {
     "id": "jardinerialamediterrania",
     "path": "projects/jardinerialamediterrania",
     "kind": "project",
     "title": "Jardinería La Mediterrània",
-    "description": "Jardinería La Mediterrània, tus jardineros en Sitges, Vilafranca, Ribes, Cunit y alrededores. Confía en nosotros para cuidar tu jardín con el mismo cariño y dedicación que hemos heredado generación tras generación."
+    "description": "Jardinería La Mediterrània, tus jardineros en Sitges, Vilafranca, Ribes, Cunit y alrededores. Confía en nosotros para cuidar tu jardín con el mismo cariño y dedicación que hemos heredado generación tras generación.",
+    "url": "https://www.jardinerialamediterrania.com/"
   },
   {
     "id": "kncelados",
     "path": "projects/kncelados",
     "kind": "project",
     "title": "Kncelados (podcast)",
-    "description": "Web oficial del podcast Kncelados, con episodios, colecciones y cortos."
+    "description": "Web oficial del podcast Kncelados, con episodios, colecciones y cortos.",
+    "url": "https://www.kncelados.com"
   },
   {
     "id": "mando",
@@ -95,63 +100,72 @@
     "path": "projects/mdisitges",
     "kind": "project",
     "title": "MDI | Muebles, Decoración, Interiorismo en Sitges",
-    "description": "Muebles, decoración e interiorismo en Sitges."
+    "description": "Muebles, decoración e interiorismo en Sitges.",
+    "url": "https://mdisitges.com"
   },
   {
     "id": "menuplis",
     "path": "projects/menuplis",
     "kind": "project",
     "title": "menuplis | Mucho más que menús y cartas digitales",
-    "description": "Mucho más que menús y cartas digitales."
+    "description": "Mucho más que menús y cartas digitales.",
+    "url": "https://menuplis.netlify.app"
   },
   {
     "id": "seastone",
     "path": "projects/seastone",
     "kind": "project",
     "title": "Seastone Homes",
-    "description": "Descubre promociones inmobiliarias exclusivas en Cataluña con Seastone Homes. Viviendas de calidad, diseño innovador y sostenibilidad."
+    "description": "Descubre promociones inmobiliarias exclusivas en Cataluña con Seastone Homes. Viviendas de calidad, diseño innovador y sostenibilidad.",
+    "url": "https://www.seastone.es"
   },
   {
     "id": "sglvilanova",
     "path": "projects/sglvilanova",
     "kind": "project",
     "title": "SGL Vilanova",
-    "description": "Alquiler de truss de aluminio e instalaciones eléctricas temporales certificadas para eventos. Las soluciones más seguras y adaptadas a la normativa actual."
+    "description": "Alquiler de truss de aluminio e instalaciones eléctricas temporales certificadas para eventos. Las soluciones más seguras y adaptadas a la normativa actual.",
+    "url": "https://www.sglvilanova.com"
   },
   {
     "id": "simplementewear",
     "path": "projects/simplementewear",
     "kind": "project",
     "title": "Simple-mente Wear",
-    "description": "Un pantalón práctico de carácter minimalista, ideal para aquellas personas que aprecian sentirse cómodos y que les gusta moverse sin limitaciones."
+    "description": "Un pantalón práctico de carácter minimalista, ideal para aquellas personas que aprecian sentirse cómodos y que les gusta moverse sin limitaciones.",
+    "url": "https://www.simplementewear.com"
   },
   {
     "id": "sitgesgi",
     "path": "projects/sitgesgi",
     "kind": "project",
     "title": "Sitges GI",
-    "description": "Sitio web de Sitges GI desarrollado por Albert Verdu, con edición de 2025."
+    "description": "Sitio web de Sitges GI desarrollado por Albert Verdu, con edición de 2025.",
+    "url": "https://www.sitgesgi.com"
   },
   {
     "id": "stopperinternational",
     "path": "projects/stopperinternational",
     "kind": "project",
     "title": "Stopper International",
-    "description": "Fernando López del Amo, Agente FIFA — Stopper International."
+    "description": "Fernando López del Amo, Agente FIFA — Stopper International.",
+    "url": "https://www.stopperinternational.com/"
   },
   {
     "id": "tattookiller",
     "path": "projects/tattookiller",
     "kind": "project",
     "title": "TattooKiller | Eliminación de tatuajes",
-    "description": "Eliminación de tatuajes."
+    "description": "Eliminación de tatuajes.",
+    "url": "https://www.tattookiller.es/"
   },
   {
     "id": "ulavet",
     "path": "projects/ulavet",
     "kind": "project",
     "title": "ULAVET | Clinica veterinaria a Sant Pere de Ribes",
-    "description": "Clínica veterinaria en Sant Pere de Ribes."
+    "description": "Clínica veterinaria en Sant Pere de Ribes.",
+    "url": "https://www.ulavet.com/"
   },
   {
     "id": "weprintpdf",

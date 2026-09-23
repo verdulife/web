@@ -22,6 +22,7 @@
       "id": "calandraautomobili",
       "title": "Calandra Automobili",
       "description": "Sitio web de Calandra Automobili, negocio de automoción, desarrollado por Albert Verdu.",
+      "url": "https://www.calandraautomobili.com/",
       "content": "# Calandra Automobili\n\n## Qué es\n\nSitio web de Calandra Automobili, un negocio de automoción. Es un proyecto desarrollado por Albert Verdu.\n\n\n\n## Tecnología\n\nAstro.js, Tailwind CSS y GSAP.\n\n## Enlace\n\nhttps://www.calandraautomobili.com/"
     },
     {
@@ -52,24 +53,28 @@
       "id": "gaplogic",
       "title": "Gaplogic",
       "description": "Web y ecosistema digital de Gaplogic: web WordPress, POS gapcloud y reporte de tareas.",
+      "url": "https://testing.gaplogic.com",
       "content": "# Gaplogic\n\n## Qué es\n\nLa web y el ecosistema digital de Gaplogic. Incluye la web, construida con WordPress y Divi; el POS gapcloud —«un simple POS para los tiempos modernos»—, desarrollado con SvelteKit bajo la organización de GitHub de Gaplogic y todavía en construcción; y un reporte de tareas que se distribuye por email a partir de una plantilla en HTML, con un flujo de Notion a email.\n\n\n\n## Tecnología\n\nWordPress con Divi para la web y SvelteKit para el POS gapcloud.\n\n## Estado\n\nLa web está en producción; el POS está en desarrollo.\n\n## Enlace\n\nhttps://testing.gaplogic.com/"
     },
     {
       "id": "gaudioart",
       "title": "Gaudio Art | Diseño de trofeos exclusivos",
       "description": "Diseño de trofeos exclusivos.",
+      "url": "https://www.gaudiobarcelona.com/",
       "content": "# Gaudio Art\n\n## Qué es\n\nWeb de Gaudio Art, dedicada al diseño de trofeos exclusivos.\n\n## Tecnología\n\nWordPress y Divi.\n\n## Enlace\n\nhttps://www.gaudiobarcelona.com/"
     },
     {
       "id": "jardinerialamediterrania",
       "title": "Jardinería La Mediterrània",
       "description": "Jardinería La Mediterrània, tus jardineros en Sitges, Vilafranca, Ribes, Cunit y alrededores. Confía en nosotros para cuidar tu jardín con el mismo cariño y dedicación que hemos heredado generación tras generación.",
+      "url": "https://www.jardinerialamediterrania.com/",
       "content": "# Jardinería La Mediterrània\n\n## Qué es\n\nWeb de Jardinería La Mediterrània, un servicio de jardinería con presencia en Sitges, Vilafranca, Ribes, Cunit y alrededores. El propio sitio se presenta como «tus jardineros» en la zona y apela a la confianza para cuidar el jardín «con el mismo cariño y dedicación que hemos heredado generación tras generación».\n\n## Tecnología\n\nAstro.js, Tailwind CSS y Playwright.\n\n## Enlace\n\nhttps://www.jardinerialamediterrania.com/"
     },
     {
       "id": "kncelados",
       "title": "Kncelados (podcast)",
       "description": "Web oficial del podcast Kncelados, con episodios, colecciones y cortos.",
+      "url": "https://www.kncelados.com",
       "content": "# Kncelados (podcast)\n\n## Qué es\n\nLa web oficial del podcast Kncelados: episodios, colecciones y cortos, con scrapers que alimentan el contenido y un código QR misterioso. La primera versión se desarrolló con Astro, se publicó en Vercel y vivía bajo la organización del podcast; la segunda se reconstruyó con Astro y Tailwind bajo la cuenta propia.\n\n## Tecnología\n\nAstro y Vercel en la v1; Astro con Tailwind en la v2; scrapers para episodios, colecciones y cortos.\n\n## Estado\n\nLa web está publicada; la v2 está en desarrollo o rediseño.\n\n\n\n## Enlace\n\nhttps://www.kncelados.com"
     },
     {
@@ -82,18 +87,21 @@
       "id": "mdisitges",
       "title": "MDI | Muebles, Decoración, Interiorismo en Sitges",
       "description": "Muebles, decoración e interiorismo en Sitges.",
+      "url": "https://mdisitges.com",
       "content": "# MDI Sitges\n\n## Qué es\n\nWeb de MDI, un negocio de muebles, decoración e interiorismo en Sitges.\n\n## Tecnología\n\nWordPress y Elementor.\n\n## Enlace\n\nhttps://mdisitges.com"
     },
     {
       "id": "menuplis",
       "title": "menuplis | Mucho más que menús y cartas digitales",
       "description": "Mucho más que menús y cartas digitales.",
+      "url": "https://menuplis.netlify.app",
       "content": "# Menuplis\n\n## Qué es\n\nWeb de Menuplis, una propuesta de menús y cartas digitales que se presenta como «mucho más que menús y cartas digitales».\n\n## Tecnología\n\nAngular.js y Firebase.\n\n## Enlace\n\nhttps://menuplis.netlify.app"
     },
     {
       "id": "seastone",
       "title": "Seastone Homes",
       "description": "Descubre promociones inmobiliarias exclusivas en Cataluña con Seastone Homes. Viviendas de calidad, diseño innovador y sostenibilidad.",
+      "url": "https://www.seastone.es",
       "content": "# Seastone Homes\n\n## Qué es\n\nWeb de Seastone Homes, centrada en promociones inmobiliarias exclusivas en Cataluña: viviendas de calidad, diseño innovador y sostenibilidad.\n\n## Tecnología\n\nWordPress y Elementor.\n\n## Enlace\n\nhttps://www.seastone.es"
     },
     {
@@ -106,18 +114,21 @@
       "id": "sglvilanova",
       "title": "SGL Vilanova",
       "description": "Alquiler de truss de aluminio e instalaciones eléctricas temporales certificadas para eventos. Las soluciones más seguras y adaptadas a la normativa actual.",
+      "url": "https://www.sglvilanova.com",
       "content": "# SGL Vilanova\n\n## Qué es\n\nWeb de SGL Vilanova, dedicada al alquiler de truss de aluminio e instalaciones eléctricas temporales certificadas para eventos, con soluciones «adaptadas a la normativa actual».\n\n## Tecnología\n\nAstro.js y Tailwind CSS.\n\n## Enlace\n\nhttps://www.sglvilanova.com"
     },
     {
       "id": "simplementewear",
       "title": "Simple-mente Wear",
       "description": "Un pantalón práctico de carácter minimalista, ideal para aquellas personas que aprecian sentirse cómodos y que les gusta moverse sin limitaciones.",
+      "url": "https://www.simplementewear.com",
       "content": "# Simple-mente Wear\n\n## Qué es\n\nWeb de Simple-mente Wear, centrada en un pantalón práctico de carácter minimalista, pensado para «aquellas personas que aprecian sentirse cómodos y que les gusta moverse sin limitaciones».\n\n## Tecnología\n\nSvelte.js y Resend.\n\n## Enlace\n\nhttps://www.simplementewear.com"
     },
     {
       "id": "sitgesgi",
       "title": "Sitges GI",
       "description": "Sitio web de Sitges GI desarrollado por Albert Verdu, con edición de 2025.",
+      "url": "https://www.sitgesgi.com",
       "content": "# Sitges GI\n\n## Qué es\n\nSitio web de Sitges GI, desarrollado por Albert Verdu. La edición publicada es la de 2025.\n\n\n\n## Tecnología\n\nAstro.js y Netlify CMS.\n\n## Enlace\n\nhttps://www.sitgesgi.com"
     },
     {
@@ -130,18 +141,21 @@
       "id": "stopperinternational",
       "title": "Stopper International",
       "description": "Fernando López del Amo, Agente FIFA — Stopper International.",
+      "url": "https://www.stopperinternational.com/",
       "content": "# Stopper International\n\n## Qué es\n\nWeb de Stopper International, el proyecto profesional de Fernando López del Amo como Agente FIFA.\n\n## Tecnología\n\nWordPress, Divi y Atropos.js.\n\n## Enlace\n\nhttps://www.stopperinternational.com/"
     },
     {
       "id": "tattookiller",
       "title": "TattooKiller | Eliminación de tatuajes",
       "description": "Eliminación de tatuajes.",
+      "url": "https://www.tattookiller.es/",
       "content": "# TattooKiller\n\n## Qué es\n\nWeb de TattooKiller, un servicio de eliminación de tatuajes.\n\n## Tecnología\n\nAstro.js, Tailwind CSS y Playwright.\n\n## Enlace\n\nhttps://www.tattookiller.es/"
     },
     {
       "id": "ulavet",
       "title": "ULAVET | Clinica veterinaria a Sant Pere de Ribes",
       "description": "Clínica veterinaria en Sant Pere de Ribes.",
+      "url": "https://www.ulavet.com/",
       "content": "# ULAVET\n\n## Qué es\n\nWeb de ULAVET, una clínica veterinaria situada en Sant Pere de Ribes.\n\n## Tecnología\n\nAstro.js, Tailwind CSS y Playwright.\n\n## Enlace\n\nhttps://www.ulavet.com/"
     },
     {

@@ -80,12 +80,14 @@ for (const file of collectMarkdown(knowledgeRoot)) {
   const title = fields.title ?? "";
   const description = fields.description ?? "";
   const kind = fields.kind ?? "";
+  const url = typeof fields.url === "string" ? fields.url.trim() : "";
 
-  entries.push({ id, path: pathValue, kind, title, description });
+  entries.push({ id, path: pathValue, kind, title, description, ...(url ? { url } : {}) });
   documents.push({
     id,
     title,
     description,
+    ...(url ? { url } : {}),
     content: stripHtmlComments(body).trim(),
   });
 }
