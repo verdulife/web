@@ -15,6 +15,7 @@ dist/
 # wrangler / cloudflare
 .wrangler/
 worker/tmp/
+worker/.dev.vars
 
 # logs & misc
 *.log
