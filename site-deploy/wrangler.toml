@@ -1,0 +1,13 @@
+# Deploy config for the portfolio site ("verdu-dev").
+# Custom worker: serves the Astro static build via Workers assets and forwards
+# every /api/* request to the chat worker — ONE origin for site + chat (no
+# CORS preflight, one URL for the visitor; custom domain later).
+name = "verdu-dev"
+main = "src/proxy.ts"
+compatibility_date = "2026-09-15"
+
+# run_worker_first: /api/* must reach the proxy BEFORE the assets resolver.
+assets = { directory = "../dist", run_worker_first = ["/api/*"] }
+
+[vars]
+CHAT_WORKER_URL = "https://verdu-chat.verdu-3a3.workers.dev"
