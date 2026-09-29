@@ -44,10 +44,10 @@ Contract (request/response/errors) is documented in `odd/tasks/portfolio-ai.md` 
 
 ### Groq free tier (dev/provider with real LLM, no Gemini)
 
-Groq is OpenAI-compatible (`https://api.groq.com/openai/v1`) with a generous free tier (llama-3.3-70b-versatile). Put your key in `worker/.dev.vars` (`GROQ_API_KEY`, gitignored) and run:
+Groq is OpenAI-compatible (`https://api.groq.com/openai/v1`) with a generous free tier (openai/gpt-oss-20b). Put your key in `worker/.dev.vars` (`GROQ_API_KEY`, gitignored) and run:
 
 ```bash
-bun run worker:dev:groq   # wrangler dev :8787 with AI_PROVIDER=groq, llama-3.3-70b-versatile
+bun run worker:dev:groq   # wrangler dev :8787 with AI_PROVIDER=groq, openai/gpt-oss-20b
 ```
 
 Like every real provider, availability failures (429/5xx/quota/timeout) resolve the turn in guide mode automatically.

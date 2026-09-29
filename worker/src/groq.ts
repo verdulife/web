@@ -49,7 +49,11 @@ export class GroqOpenAIProvider implements AIProvider {
     private readonly modelId: string,
     options: GroqOpenAIProviderOptions = {},
   ) {
-    this.fetchImpl = options.fetchImpl ?? fetch;
+    // Bind through an arrow wrapper: calling the workerd/bun `fetch` as a bare
+    // reference (`this.fetchImpl = fetch`) throws "Illegal invocation" in the
+    // Workers runtime because the global requires its own `this`. An injected
+    // test fetch (plain function) is unaffected by the wrapper.
+    this.fetchImpl = options.fetchImpl ?? ((input, init) => fetch(input, init));
   }
 
   async generate(request: AiRequest): Promise<AiResponse> {
@@ -64,8 +68,19 @@ export class GroqOpenAIProvider implements AIProvider {
       stream: false,
     };
     // Groq rejects an empty `tools` array (like Workers AI), so the field is
-    // omitted entirely on turns that offer no tools (settle call).
-    if (request.tools.length > 0) body.tools = request.tools;
+    // omitted entirely on turns that offer no tools (settle call). Tools are
+    // mapped to the OpenAI wire shape: the loop carries `AiTool`
+    // (name/description/parameters) without the `type` discriminator.
+    if (request.tools.length > 0) {
+      body.tools = request.tools.map((tool) => ({
+        type: "function" as const,
+        function: {
+          name: tool.name,
+          description: tool.description,
+          parameters: tool.parameters,
+        },
+      }));
+    }
 
     const response = await this.fetchImpl(`${GROQ_API_BASE_URL}${GROQ_CHAT_COMPLETIONS_PATH}`, {
       method: "POST",

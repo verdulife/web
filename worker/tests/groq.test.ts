@@ -159,13 +159,26 @@ describe("GroqOpenAIProvider.generate", () => {
     expect(sentMessages[0]).toEqual({ role: "system", content: REQUEST.system });
   });
 
-  it("includes tools in the body when the request offers them", async () => {
+  it("maps tools to the OpenAI wire shape (type:function wrapper) when the request offers them", async () => {
     const { stub, captured } = fetchStubFor(() => ({ status: 200, body: groqPayload("ok") }));
     const provider = new GroqOpenAIProvider("k", "m", { fetchImpl: stub });
 
     await provider.generate({ ...REQUEST, tools: [TOOL] });
 
-    expect(captured().body.tools).toEqual([TOOL]);
+    // The loop carries AiTool without the `type` discriminator; Groq (OpenAI
+    // wire format) requires { type: "function", function: { name, description,
+    // parameters } }. This shape mismatch surfaced live as HTTP 400
+    // "'tools.0.type' : property 'type' is missing".
+    expect(captured().body.tools).toEqual([
+      {
+        type: "function",
+        function: {
+          name: TOOL.name,
+          description: TOOL.description,
+          parameters: TOOL.parameters,
+        },
+      },
+    ]);
   });
 
   it("normalizes an OpenAI-style tool_calls response into parsed arguments", async () => {

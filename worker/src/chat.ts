@@ -170,6 +170,9 @@ async function generateTurn(
   try {
     return await provider.generate({ system: systemPrompt, messages: history, tools, maxTokens });
   } catch (error) {
+    // Surface the real provider failure (HTTP status/gateway message) in dev
+    // logs; the error text never contains secrets.
+    console.error("[chat] provider error:", toErrorMessage(error));
     throw new ChatRunError(classifyProviderError(error), toErrorMessage(error));
   }
 }

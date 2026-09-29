@@ -2,14 +2,14 @@
 
 ## Goal
 
-Add **Groq** (OpenAI-compatible, `https://api.groq.com/openai/v1`, free tier llama-3.3-70b-versatile) as a chat provider on `main`. Groq is a real free tier with daily quota (~14.4k req/day RPD for 70b versatile) that does not touch Gemini's window or Cloudflare neurons, and it participates in the existing cost ladder: `real LLM → guide mode` (automatic fallback already generic via `classifyProviderError`, which catches Groq 429/5xx/timeouts).
+Add **Groq** (OpenAI-compatible, `https://api.groq.com/openai/v1`, free tier openai/gpt-oss-20b) as a chat provider on `main`. Groq is a real free tier with daily quota (~14.4k req/day RPD for 70b versatile) that does not touch Gemini's window or Cloudflare neurons, and it participates in the existing cost ladder: `real LLM → guide mode` (automatic fallback already generic via `classifyProviderError`, which catches Groq 429/5xx/timeouts).
 
 ## Scope
 
 - `GroqOpenAIProvider` in `worker/src/groq.ts`: HTTP OpenAI-compatible adapter (Bearer `GROQ_API_KEY` from `.dev.vars`/secrets — never in repo), model `GROQ_MODEL_ID ?? MODEL_ID`, no reasoning field (llama family), normalize text + tool_calls into the existing `AiResponse` contract, defensive like the rest of the adapters.
 - `Env`: add `GROQ_API_KEY: string` and optional `GROQ_MODEL_ID?: string`.
 - Selection: extract a testable `selectProvider(env)` (mock | guide | groq | cloudflare default) in `index.ts`; `AI_PROVIDER=groq` wires Groq. Guide fallback unchanged (no changes to chat.ts).
-- Script `worker:dev:groq` (`wrangler dev --port 8787 --local --var AI_PROVIDER:groq --var GROQ_MODEL_ID:llama-3.3-70b-versatile`), README runbook note.
+- Script `worker:dev:groq` (`wrangler dev --port 8787 --local --var AI_PROVIDER:groq --var GROQ_MODEL_ID:openai/gpt-oss-20b`), README runbook note.
 - Tests: adapter unit with fetch stub (200 text, 200 tool_calls, 429/5xx → availability error, malformed payload defensive), selection tests.
 - NOT in scope: changing the committed production default (stays cloudflare legacy on main; prod choice is user-owned), Gemini (separate unmerged branch).
 
