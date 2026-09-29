@@ -1,13 +1,23 @@
-# Deploy config for the portfolio site ("verdu-dev").
-# Custom worker: serves the Astro static build via Workers assets and forwards
-# every /api/* request to the chat worker — ONE origin for site + chat (no
-# CORS preflight, one URL for the visitor; custom domain later).
-name = "verdu-dev"
-main = "src/proxy.ts"
+# Single-worker deploy: verdu.verdu-3a3.workers.dev serves the portfolio (static
+# assets) AND the chat (/api/* in-process). One worker, one URL, no CORS.
+name = "verdu"
+main = "src/site.ts"
 compatibility_date = "2026-09-15"
 
-# run_worker_first: /api/* must reach the proxy BEFORE the assets resolver.
 assets = { directory = "../dist", run_worker_first = ["/api/*"] }
 
 [vars]
-CHAT_WORKER_URL = "https://verdu-chat.verdu-3a3.workers.dev"
+# Same provider/limits contract as worker/wrangler.toml (production defaults).
+AI_PROVIDER = "groq"
+GROQ_MODEL_ID = "openai/gpt-oss-20b"
+MODEL_ID = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+GITHUB_REPO = ""
+GITHUB_REF = "main"
+GITHUB_TOKEN = ""
+ALLOWED_ORIGINS = "http://localhost:4321;https://verdu.dev;https://verdu-dev.verdu-3a3.workers.dev;https://verdu.verdu-3a3.workers.dev"
+RATE_LIMIT_PER_MINUTE = "30"
+MAX_MESSAGES = "8"
+MAX_INPUT_CHARS = "2000"
+MAX_OUTPUT_TOKENS = "512"
+MAX_TOOL_CALLS = "3"
+DOC_MAX_CHARS = "6000"
