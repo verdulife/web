@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ChatRunError, runChat } from "../src/chat";
+import { ChatRunError, classifyProviderError, runChat } from "../src/chat";
 import { CloudflareAIProvider, MAX_OUTPUT_CHARS } from "../src/ai";
 import type { AIProvider, AiRequest, AiResponse } from "../src/ai";
 import { SnapshotKnowledgeProvider } from "../src/knowledge";
@@ -592,5 +592,28 @@ describe("CloudflareAIProvider normalization", () => {
     expect(result.reply).toContain("Gaplogic");
     expect(result.sources).toEqual(["gaplogic"]);
     expect(tracked.getDocumentCalls).toEqual(["gaplogic"]);
+  });
+});
+
+describe("classifyProviderError", () => {
+  it.each<[string, "ai_unavailable" | "ai_error"]>([
+    ["HTTP 429 Too Many Requests: daily quota exceeded", "ai_unavailable"],
+    ["you have used up your daily free allocation of 10,000 neurons (4006)", "ai_unavailable"],
+    ["Upstream request failed: 503 Service Unavailable", "ai_unavailable"],
+    ["502 ai_unavailable", "ai_unavailable"],
+    ["fetch failed: connect ECONNREFUSED 127.0.0.1:8787", "ai_unavailable"],
+    ["request timed out after 30s", "ai_unavailable"],
+    ["ApiError: rate limit reached, retry in 30s", "ai_unavailable"],
+    ["Malformed tool call: missing arguments json", "ai_error"],
+    ["Model not found: gemini-2.5-flash", "ai_error"],
+    ["Invalid request: unknown parameter", "ai_error"],
+    ["", "ai_error"],
+  ])("classifies %j as %j", (message: string, expected: "ai_unavailable" | "ai_error") => {
+    expect(classifyProviderError(new Error(message))).toBe(expected);
+  });
+
+  it("classifies non-Error throws (unknown shapes) safely", () => {
+    expect(classifyProviderError("string throw")).toBe("ai_error");
+    expect(classifyProviderError(undefined)).toBe("ai_error");
   });
 });

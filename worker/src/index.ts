@@ -1,6 +1,7 @@
 import type { AIProvider } from "./ai";
 import { CloudflareAIProvider, MockAIProvider } from "./ai";
 import { ChatRunError, runChat } from "./chat";
+import { GUIDE_SUGGESTIONS, GuideAIProvider } from "./guide";
 import { createKnowledgeProvider } from "./knowledge";
 import type { KnowledgeProvider } from "./knowledge";
 import { createRateLimiter } from "./ratelimit";
@@ -16,7 +17,7 @@ import { LinkMetaError, isFetchableUrl, resolveLinkMeta } from "./link-meta";
 import { resolveProjectCard } from "./project";
 import { listProjectCards } from "./projects";
 import { buildSystemPrompt } from "./prompts";
-import type { Env } from "./types";
+import type { ChatMessage, Env } from "./types";
 import { normalizeWidgets } from "./widgets";
 
 function json(
@@ -179,6 +180,42 @@ async function handleLinkMeta(
   }
 }
 
+/**
+ * Shared guide-mode response path (forced selection and automatic fallback):
+ * routes the last user message through {@link GuideAIProvider} — no model, no
+ * tools, no knowledge queries — and returns the same `reply + widgets`
+ * contract as the model path (through normalizeWidgets) plus `mode: "guide"`
+ * and the suggestion chips the front renders via `.ask-suggestions`. `sources`
+ * is always empty: guide mode never consults the knowledge documents.
+ */
+async function guideResponse(
+  deps: HandlerDeps,
+  messages: ChatMessage[],
+  cors: Record<string, string>,
+): Promise<Response> {
+  const projects = listProjectCards(deps.knowledge.index());
+  const result = await new GuideAIProvider({ projects }).generate({
+    system: "", // guide mode never talks to a model: no system prompt.
+    messages,
+    tools: [],
+    maxTokens: deps.limits.maxOutputTokens,
+  });
+  const normalized = normalizeWidgets(result.text ?? "");
+  // `widgets` omitted when empty (same rule as the model path).
+  const widgets = normalized.widgets.length > 0 ? { widgets: normalized.widgets } : {};
+  return json(
+    {
+      reply: normalized.reply,
+      ...widgets,
+      sources: [],
+      mode: "guide",
+      suggestions: GUIDE_SUGGESTIONS,
+    },
+    undefined,
+    cors,
+  );
+}
+
 async function handleProject(
   url: URL,
   deps: HandlerDeps,
@@ -233,6 +270,13 @@ async function handleChat(
   const messages = trimMessages(validation.request.messages, deps.limits.maxMessages);
 
   try {
+    if (deps.ai instanceof GuideAIProvider) {
+      // Forced guide mode (AI_PROVIDER=guide): the provider never throws, so
+      // there is no double fallback — the turn goes straight to the shared
+      // guide response path (which already carries mode + suggestions).
+      return await guideResponse(deps, messages, cors);
+    }
+
     const result = await runChat(
       { limits: deps.limits },
       system,
@@ -250,6 +294,13 @@ async function handleChat(
       cors,
     );
   } catch (error) {
+    if (error instanceof ChatRunError && error.code === "ai_unavailable") {
+      // The real provider could not produce an answer mid-turn (no usable
+      // output after the settle call): the whole turn resolves deterministically
+      // in guide mode instead of the 502. `ai_error` stays non-retryable and
+      // keeps the current 502 behavior.
+      return await guideResponse(deps, messages, cors);
+    }
     if (!(error instanceof ChatRunError)) {
       console.error("[chat]", error instanceof Error ? error.message : error);
     }
@@ -259,10 +310,20 @@ async function handleChat(
 
 export default {
   fetch(request: Request, env: Env, _ctx: unknown): Promise<Response> {
+    const knowledge = createKnowledgeProvider(env);
+    // Same project list served by GET /api/projects (listProjectCards over the
+    // knowledge index): forced guide mode and the automatic fallback reuse it
+    // instead of duplicating content.
+    const projects = listProjectCards(knowledge.index());
     const deps: HandlerDeps = {
       rateLimiter: createRateLimiter(env),
-      knowledge: createKnowledgeProvider(env),
-      ai: env.AI_PROVIDER === "mock" ? new MockAIProvider() : new CloudflareAIProvider(env.AI, env.MODEL_ID),
+      knowledge,
+      ai:
+        env.AI_PROVIDER === "mock"
+          ? new MockAIProvider()
+          : env.AI_PROVIDER === "guide"
+            ? new GuideAIProvider({ projects })
+            : new CloudflareAIProvider(env.AI, env.MODEL_ID),
       limits: limitsFromEnv(env),
       allowedOrigins: allowedOriginsFromEnv(env),
     };

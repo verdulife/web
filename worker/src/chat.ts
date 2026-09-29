@@ -39,6 +39,25 @@ export class ChatRunError extends Error {
   }
 }
 
+/**
+ * Classifies a raw provider failure. Availability problems — quota/rate limit
+ * (429, Cloudflare 4006 neurons), upstream 5xx, timeouts and network failures —
+ * are retryable and must resolve the turn in guide mode. Anything else
+ * (malformed request, invalid model, bad payload) stays `ai_error`, which
+ * keeps the existing 502 path.
+ */
+export function classifyProviderError(error: unknown): "ai_unavailable" | "ai_error" {
+  const haystack = toErrorMessage(error).toLowerCase();
+  if (
+    /quota|rate\s*limit|429|5\d\d|unavailable|service not available|timeout|timed\s*out|network|econn|fetch failed|ai_unavailable|4006/.test(
+      haystack,
+    )
+  ) {
+    return "ai_unavailable";
+  }
+  return "ai_error";
+}
+
 /** The only tool the model may use: fetch a knowledge document by id. */
 export const GET_KNOWLEDGE_DOCUMENT_TOOL: AiTool = {
   name: "get_knowledge_document",
@@ -151,7 +170,7 @@ async function generateTurn(
   try {
     return await provider.generate({ system: systemPrompt, messages: history, tools, maxTokens });
   } catch (error) {
-    throw new ChatRunError("ai_error", toErrorMessage(error));
+    throw new ChatRunError(classifyProviderError(error), toErrorMessage(error));
   }
 }
 
