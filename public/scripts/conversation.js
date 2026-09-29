@@ -16,6 +16,8 @@
  *     .ask-thread        role="log" region where turns are appended/scrolled
  *     .ask-thinking      hidden thinking row shown while a request is in flight
  *     .ask-error         hidden error row; its content is built here
+ *     .guide-notice      ephemeral per-turn marker under a guide-mode reply
+ *                        (mode: "guide"); never persisted, DOM-only
  *
  * The .ask-suggestions widget is built and inserted by this module, after the
  * intro turn once the greeting finishes streaming. The server-rendered copy
@@ -185,6 +187,10 @@
   var INTRO_TEXT =
     "Hola, soy Albert Verdú, desarrollador web y diseñador gráfico con más de 20 años de experiencia. ¿En qué puedo ayudarte?";
 
+  /** Guide-mode (T4): discreet per-turn notice shown under a guide reply. */
+  var GUIDE_NOTICE_TEXT =
+    "Modo guía: el chat responde ahora mismo sin modelo de IA, con respuestas seleccionadas.";
+
   var RATE_LIMIT_MESSAGE =
     "Demasiadas preguntas en poco tiempo. Espera un momento y vuelve a intentarlo.";
   var UNAVAILABLE_MESSAGE = "El servicio de respuestas no está disponible ahora mismo.";
@@ -262,6 +268,21 @@
       throw unavailableError();
     }
 
+    // Guide mode (T4): `mode: "guide"` plus curated `suggestions` ride along
+    // on guide replies only. Both are absent/empty on the normal (model) path,
+    // which stays byte-identical. Suggestions are sanitized to non-empty
+    // strings; a malformed array degrades to [] (no chips rendered).
+    var mode = payload.mode === "guide" ? "guide" : undefined;
+    var suggestions = [];
+    if (mode === "guide" && Array.isArray(payload.suggestions)) {
+      for (var i = 0; i < payload.suggestions.length; i += 1) {
+        var candidate = payload.suggestions[i];
+        if (typeof candidate === "string" && candidate !== "") {
+          suggestions.push(candidate);
+        }
+      }
+    }
+
     var sources = Array.isArray(payload.sources)
       ? payload.sources.filter(function (source) {
           return typeof source === "string" && source !== "";
@@ -286,7 +307,13 @@
         );
       });
     }
-    return { reply: payload.reply, sources: sources, widgets: widgets };
+    return {
+      reply: payload.reply,
+      sources: sources,
+      widgets: widgets,
+      mode: mode,
+      suggestions: suggestions,
+    };
   }
 
   function readFailure(error) {
@@ -1318,6 +1345,20 @@
     lifecycle.close();
   }
 
+  /**
+   * T4 — builds the discreet guide-mode marker (class `guide-notice`) shown
+   * below a guide reply's assistant turn. DOM-only (textContent, never
+   * innerHTML). The notice is ephemeral per-turn UI: it is never written to
+   * `history`/sessionStorage, so a restored thread renders as before and a
+   * stale notice cannot survive a reload.
+   */
+  function createGuideNotice() {
+    var notice = document.createElement("div");
+    notice.className = "guide-notice";
+    notice.textContent = GUIDE_NOTICE_TEXT;
+    return notice;
+  }
+
   function init() {
     // W5: install the real link-meta resolver (worker-backed, cached) once,
     // before any reply can render; the module-load default resolves null.
@@ -1375,7 +1416,8 @@
      * previous single-pass streamText behavior is kept unchanged; with widget
      * segments the reply streams per segment, pausing the typewriter while
      * each widget resolves (inline widgets stay in the current paragraph,
-     * block widgets close it).
+     * block widgets close it). Resolves with the turn element so the caller
+     * can anchor per-turn UI (guide notice) below the reply.
      */
     function buildAssistantTurn(text, widgets) {
       return new Promise(function (resolve) {
@@ -1397,12 +1439,14 @@
           turn.append(paragraph);
           streamText(paragraph, text, thread, function () {
             scrollThreadBottom(thread);
-            resolve();
+            resolve(turn);
           });
           return;
         }
 
-        streamSegments(turn, segments, thread).then(resolve);
+        streamSegments(turn, segments, thread).then(function () {
+          resolve(turn);
+        });
       });
     }
 
@@ -1418,21 +1462,26 @@
 
     /**
      * Builds the suggestions widget (buttons with data-question) and wires the
-     * click delegation that submits the chosen question. Inserted in-flow after
-     * the intro turn, so it scrolls away naturally with the thread.
+     * click delegation that submits the chosen question. Called without
+     * arguments it renders the intro suggestions; guide mode (T4) passes an
+     * array of `{ label, question }` chips through the SAME build path (worker
+     * guide suggestions are question strings, so label === question). The
+     * result is inserted in-flow after the intro turn, so it scrolls away
+     * naturally with the thread.
      */
-    function buildSuggestions() {
+    function buildSuggestions(chips) {
+      var sources = Array.isArray(chips) && chips.length > 0 ? chips : suggestions;
       var wrap = document.createElement("div");
       wrap.className = "ask-suggestions";
       wrap.setAttribute("role", "group");
       wrap.setAttribute("aria-label", "Sugerencias");
 
-      for (var i = 0; i < suggestions.length; i += 1) {
+      for (var i = 0; i < sources.length; i += 1) {
         var button = document.createElement("button");
         button.type = "button";
         button.className = "ask-suggestion";
-        button.dataset.question = suggestions[i].question;
-        button.textContent = suggestions[i].label;
+        button.dataset.question = sources[i].question;
+        button.textContent = sources[i].label;
         wrap.append(button);
       }
 
@@ -1531,9 +1580,42 @@
         setThinking(false);
         // Assistant entries carry the widget descriptors that ride along
         // with the reply (R1: they are persisted with the message and used
-        // to re-render widgets on restore).
+        // to re-render widgets on restore). Guide mode (T4) never reaches
+        // `history`: the notice and the guide chips are ephemeral UI, so
+        // saveChatState below persists nothing guide-specific — a restored
+        // thread renders as before, intro suggestions included.
         history.push({ role: "assistant", content: response.reply, widgets: response.widgets ?? [] });
-        await buildAssistantTurn(response.reply, response.widgets ?? []);
+        var turn = await buildAssistantTurn(response.reply, response.widgets ?? []);
+
+        if (response.mode === "guide") {
+          // Discreet per-turn marker below the assistant reply.
+          var notice = createGuideNotice();
+          turn.after(notice);
+
+          if (response.suggestions.length > 0) {
+            // Guide chips reuse the SAME .ask-suggestions build path and its
+            // click-to-submit delegation (each chip's data-question goes
+            // through ask()). They REPLACE the intro suggestions inside the
+            // single wrap, which is re-anchored right below the notice so the
+            // offered chips sit next to the reply that produced them (the
+            // intro wrap may have scrolled out of view above). A guide reply
+            // without suggestions leaves the wrap untouched, so the intro
+            // suggestions remain as today. Wrap content/placement is DOM-only
+            // and never persisted: on reload the intro suggestions return.
+            var guideChips = [];
+            for (var i = 0; i < response.suggestions.length; i += 1) {
+              guideChips.push({
+                label: response.suggestions[i],
+                question: response.suggestions[i],
+              });
+            }
+            if (suggestionsWrap) suggestionsWrap.remove();
+            suggestionsWrap = buildSuggestions(guideChips);
+            notice.after(suggestionsWrap);
+          }
+          scrollThreadBottom(thread);
+        }
+
         // Turn fully mounted: the visible state is now durable.
         saveChatState();
       } catch (error) {

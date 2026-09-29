@@ -961,6 +961,20 @@
     border-color: var(--color-accent);
   }
 
+  /* Guide-mode marker (T4): discreet per-turn footnote under a guide reply.
+     Small mono, muted, with the same hairline top border as the paragraphs so
+     it reads as part of the thread — not as an error. */
+  .guide-notice {
+    margin: 0;
+    padding: 0.75rem 0 0;
+    border-top: 1px solid var(--color-line);
+    max-width: 60ch;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    line-height: 1.5;
+    color: var(--color-ink-muted);
+  }
+
   /* Barra a todo el ancho; el formulario (input) vive en la columna compartida. */
   .ask-form {
     display: flex;
