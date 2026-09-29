@@ -339,7 +339,6 @@ export default {
     const knowledge = createKnowledgeProvider(env);
     const deps: HandlerDeps = {
       rateLimiter: createRateLimiter(env),
-<<<<<<< HEAD
       knowledge,
       ai: selectProvider(env),
       limits: limitsFromEnv(env),
