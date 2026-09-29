@@ -42,6 +42,16 @@ curl -s -X POST http://localhost:8787/api/chat \
 
 Contract (request/response/errors) is documented in `odd/tasks/portfolio-ai.md` under *App contract*.
 
+### Groq free tier (dev/provider with real LLM, no Gemini)
+
+Groq is OpenAI-compatible (`https://api.groq.com/openai/v1`) with a generous free tier (llama-3.3-70b-versatile). Put your key in `worker/.dev.vars` (`GROQ_API_KEY`, gitignored) and run:
+
+```bash
+bun run worker:dev:groq   # wrangler dev :8787 with AI_PROVIDER=groq, llama-3.3-70b-versatile
+```
+
+Like every real provider, availability failures (429/5xx/quota/timeout) resolve the turn in guide mode automatically.
+
 ### Guide mode (deterministic fallback, no LLM)
 
 When the real model is unavailable (free-tier quota exhausted, 5xx, timeout) the worker answers with **curated, deterministic replies** — same `reply + widgets` contract, plus `mode: "guide"` and `suggestions` so the front shows a discreet notice and suggestion chips. Nothing in guide mode touches the model, tools or quota.

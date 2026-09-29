@@ -16,7 +16,8 @@
     "worker:test": "bun run --cwd worker test",
     "worker:gen": "bun run --cwd worker gen:knowledge",
     "worker:dev:local": "bun run --cwd worker dev:local",
-    "worker:dev:mock": "bun run --cwd worker dev:mock"
+    "worker:dev:mock": "bun run --cwd worker dev:mock",
+    "worker:dev:groq": "bun run --cwd worker dev:groq"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.0",

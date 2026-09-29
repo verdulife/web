@@ -10,7 +10,8 @@
     "test": "vitest run",
     "gen:knowledge": "bun scripts/generate-knowledge-snapshot.js",
     "types": "tsc --noEmit",
-    "dev:guide": "wrangler dev --port 8787 --local --var AI_PROVIDER:guide"
+    "dev:guide": "wrangler dev --port 8787 --local --var AI_PROVIDER:guide",
+    "dev:groq": "wrangler dev --port 8787 --local --var AI_PROVIDER:groq --var GROQ_MODEL_ID:llama-3.3-70b-versatile"
   },
   "devDependencies": {
     "wrangler": "^4.36.0",
