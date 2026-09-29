@@ -16,6 +16,8 @@ dist/
 .wrangler/
 worker/tmp/
 worker/.dev.vars
+.dev.vars
+.dev.vars.*
 
 # logs & misc
 *.log

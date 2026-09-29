@@ -3,8 +3,13 @@ import type { Widget } from "./widgets";
 export interface Env {
   AI: any;
   MODEL_ID: string;
-  /** Dev-only mock selection (`--var AI_PROVIDER:mock`); absent = real provider. */
+  /** Provider selection: mock | guide | gemini | groq | cloudflare (default). */
   AI_PROVIDER?: string;
+  /**
+   * Secret key for the Gemini provider. Local dev: `worker/.dev.vars`; prod:
+   * `wrangler secret put GEMINI_API_KEY`. Never a `[vars]` entry.
+   */
+  GEMINI_API_KEY?: string;
   /** Groq API key from secrets/.dev.vars (never in wrangler.toml or the repo). */
   GROQ_API_KEY?: string;
   /** Groq model override; falls back to MODEL_ID when absent. */

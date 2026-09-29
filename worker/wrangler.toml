@@ -6,6 +6,18 @@ compatibility_date = "2026-09-15"
 binding = "AI"
 
 [vars]
+# AI provider default (production). API keys are SECRETS and never live here:
+# local dev uses worker/.dev.vars (gitignored), production uses
+# `wrangler secret put <KEY>`. The committed default is Groq (free tier, the
+# most generous real cap); Gemini and the rest are CLI-only switches
+# (`wrangler dev --var AI_PROVIDER:...`) or committed changes:
+#   groq      -> GroqOpenAIProvider (default; GROQ_API_KEY secret, gpt-oss-20b)
+#   gemini    -> GeminiOpenAIProvider (GEMINI_API_KEY secret, MODEL_ID)
+#   mock      -> MockAIProvider (widget/UI testing, no model API)
+#   guide     -> deterministic curated fallback (no LLM)
+#   cloudflare-> legacy Workers AI binding (env.AI)
+AI_PROVIDER = "groq"
+GROQ_MODEL_ID = "openai/gpt-oss-20b"
 MODEL_ID = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 GITHUB_REPO = ""
 GITHUB_REF = "main"

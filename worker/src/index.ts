@@ -2,6 +2,7 @@ import type { AIProvider } from "./ai";
 import { CloudflareAIProvider, MockAIProvider } from "./ai";
 import { GroqOpenAIProvider } from "./groq";
 import { ChatRunError, runChat } from "./chat";
+import { GeminiOpenAIProvider } from "./gemini";
 import { GUIDE_SUGGESTIONS, GuideAIProvider } from "./guide";
 import { createKnowledgeProvider } from "./knowledge";
 import type { KnowledgeProvider } from "./knowledge";
@@ -324,6 +325,9 @@ export function selectProvider(env: Env): AIProvider {
       projects: listProjectCards(createKnowledgeProvider(env).index()),
     });
   }
+  if (env.AI_PROVIDER === "gemini") {
+    return new GeminiOpenAIProvider(env.GEMINI_API_KEY ?? "", env.MODEL_ID);
+  }
   if (env.AI_PROVIDER === "groq") {
     return new GroqOpenAIProvider(env.GROQ_API_KEY ?? "", env.GROQ_MODEL_ID ?? env.MODEL_ID);
   }
@@ -335,6 +339,7 @@ export default {
     const knowledge = createKnowledgeProvider(env);
     const deps: HandlerDeps = {
       rateLimiter: createRateLimiter(env),
+<<<<<<< HEAD
       knowledge,
       ai: selectProvider(env),
       limits: limitsFromEnv(env),

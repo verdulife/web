@@ -103,7 +103,7 @@ export function normalizeAiResult(result: unknown): AiResponse {
  * is treated as no text so the tool-call branch can drive the loop, and the
  * result is capped at MAX_OUTPUT_CHARS.
  */
-function normalizeResponseText(raw: unknown): string | null {
+export function normalizeResponseText(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
   const text = raw.trim();
   if (text === "") return null;
