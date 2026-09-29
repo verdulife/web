@@ -66,9 +66,9 @@ When the real model is unavailable (free-tier quota exhausted, 5xx, timeout) the
 2. Run `bun run worker:gen` — regenerates the worker's bundled snapshot + index (excludes `knowledge/index.md` by design).
 3. The static pages (about, skills, services, projects, …) render the same files automatically.
 
-## Gemini provider (chat AI)
+## Gemini provider (chat AI, capa alternativa)
 
-El chat del worker usa la **Gemini API free tier** por defecto (modelo `gemini-3.6-flash` a través del endpoint OpenAI-compatible de Gemini). Nota: `gemini-2.5-flash` quedó **retirado** para cuentas nuevas (404 "no longer available to new users"); verificado en vivo 2026-02. Una pregunta del chat cuesta hasta **4 llamadas al modelo** (3 turnos de herramienta + settle). Observado en vivo: el tier gratuito de `gemini-3.6-flash` corta en **~20 requests por ventana** (429 con "retry in Xs" que no se recupera en minutos — revisar el techo real en [AI Studio](https://aistudio.google.com/rate-limit) con tu key antes de decidir producción).
+Gemini es una **capa alternativa** del chat (selección `AI_PROVIDER=gemini`, modelo `gemini-3.6-flash` por el endpoint OpenAI-compatible); el **default de producción es Groq** (sección anterior, techo free más generoso). Nota: `gemini-2.5-flash` quedó **retirado** para cuentas nuevas (404 "no longer available to new users"); verificado en vivo 2026-02. Una pregunta del chat cuesta hasta **4 llamadas al modelo** (3 turnos de herramienta + settle). Observado en vivo: el tier gratuito de `gemini-3.6-flash` corta en **~20 requests por ventana** (429 con "retry in Xs" que no se recupera en minutos — revisar el techo real en [AI Studio](https://aistudio.google.com/rate-limit) con tu key antes de decidir producción).
 
 ### Requisitos
 
@@ -88,16 +88,17 @@ cd worker && wrangler dev                       # o `bun run worker:dev:local` p
 cd worker && wrangler secret put GEMINI_API_KEY
 ```
 
-`wrangler.toml` ya trae por defecto `AI_PROVIDER = "gemini"` y `MODEL_ID = "gemini-3.6-flash"`. Al desplegar, recuerda: `ALLOWED_ORIGINS` debe listar el dominio real y, si el frontend está en Vercel, apuntar `PUBLIC_WORKER_URL` al worker desplegado.
+`wrangler.toml` trae por defecto `AI_PROVIDER = "groq"` y `GROQ_MODEL_ID = "openai/gpt-oss-20b"` (el `MODEL_ID` genérico queda para el legacy Workers AI). Al desplegar, recuerda: `ALLOWED_ORIGINS` debe listar el dominio real y, si el frontend está en Vercel, apuntar `PUBLIC_WORKER_URL` al worker desplegado. Los secretos de prod van con `wrangler secret put GROQ_API_KEY` / `GEMINI_API_KEY`, nunca en variables.
 
 ### Cambiar de proveedor
 
-El valor por defecto commiteado es Gemini; el resto de modos se seleccionan solo por CLI (`--var`), nunca editando `wrangler.toml`:
+El valor por defecto commiteado es Groq; el resto de modos se seleccionan solo por CLI (`--var`) o cambiando `AI_PROVIDER`/modelos, nunca tocando secretos:
 
 ```bash
 cd worker && bun run dev:mock                   # AI_PROVIDER:mock -> MockAIProvider (widget/UI testing)
+cd worker && bun run dev:guide                  # AI_PROVIDER:guide -> catálogo determinista (sin LLM)
 cd worker && wrangler dev --var AI_PROVIDER:cloudflare   # legacy Workers AI
-cd worker && wrangler dev --var AI_PROVIDER:gemini       # explícito, por si se prueba sin el defecto
+cd worker && wrangler dev --var AI_PROVIDER:gemini --var MODEL_ID:gemini-3.6-flash  # capa Gemini
 ```
 
 ### Caída del proveedor
