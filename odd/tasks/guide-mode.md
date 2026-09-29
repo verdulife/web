@@ -65,4 +65,6 @@ Router design notes: keyword scoring with weights; minimum threshold; specific i
 
 ## Ledger
 
-- 2026-09-29: feature started. Branch `feat/guide-mode` from `main` (8b86d02). Baseline: worker tests 214, tsc clean.
+- 2026-09-29: feature started. Branch `feat/guide-mode` from `main` (8b86d02). Baseline: worker tests 200 (main; +14 gemini on the other branch = the 214 figure seen in older ledgers), tsc clean.
+- 2026-09-29: T1-T4 done. Commits: 84ad80a (docs + .gitignore .dev.vars), e6d3b9e (guide.ts + router, 92 tests), 878096c (index.ts integration + `classifyProviderError` in chat.ts mapping real availability failures 429/5xx/quota to guide fallback, +23 tests), 98523a0 (front notice + chips).
+- 2026-09-29: review catch — the FIRST integration wired fallback only to the settle no-output path; quota/5xx (the real free-tier case) arrived wrapped as `ai_error` and still 502. Fixed via `classifyProviderError` in `chat.ts` (tests in chat.test.ts table + guide-handler 429/5xx cases).

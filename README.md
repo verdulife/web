@@ -42,6 +42,14 @@ curl -s -X POST http://localhost:8787/api/chat \
 
 Contract (request/response/errors) is documented in `odd/tasks/portfolio-ai.md` under *App contract*.
 
+### Guide mode (deterministic fallback, no LLM)
+
+When the real model is unavailable (free-tier quota exhausted, 5xx, timeout) the worker answers with **curated, deterministic replies** — same `reply + widgets` contract, plus `mode: "guide"` and `suggestions` so the front shows a discreet notice and suggestion chips. Nothing in guide mode touches the model, tools or quota.
+
+- Force it for development: `bun run --cwd worker dev:guide` (wrangler dev with `AI_PROVIDER=guide`).
+- Automatic: any availability failure (429 quota, Cloudflare 4006 neurons, 5xx, network/timeout) during a turn resolves that turn in guide mode; non-availability errors keep the existing 502 path.
+- Catalog lives in `worker/src/guide.ts` (intent router + curated Spanish replies); feature spec in `odd/tasks/guide-mode.md`.
+
 ### Editing knowledge
 
 1. Edit the Spanish markdown in `knowledge/` (frontmatter: `id`, `kind`, `title`, `description`).

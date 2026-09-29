@@ -9,7 +9,8 @@
     "check": "tsc --noEmit",
     "test": "vitest run",
     "gen:knowledge": "bun scripts/generate-knowledge-snapshot.js",
-    "types": "tsc --noEmit"
+    "types": "tsc --noEmit",
+    "dev:guide": "wrangler dev --port 8787 --local --var AI_PROVIDER:guide"
   },
   "devDependencies": {
     "wrangler": "^4.36.0",
