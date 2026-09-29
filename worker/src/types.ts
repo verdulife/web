@@ -5,6 +5,10 @@ export interface Env {
   MODEL_ID: string;
   /** Dev-only mock selection (`--var AI_PROVIDER:mock`); absent = real provider. */
   AI_PROVIDER?: string;
+  /** Groq API key from secrets/.dev.vars (never in wrangler.toml or the repo). */
+  GROQ_API_KEY?: string;
+  /** Groq model override; falls back to MODEL_ID when absent. */
+  GROQ_MODEL_ID?: string;
   GITHUB_REPO: string;
   GITHUB_REF: string;
   GITHUB_TOKEN: string;

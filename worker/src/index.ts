@@ -1,5 +1,6 @@
 import type { AIProvider } from "./ai";
 import { CloudflareAIProvider, MockAIProvider } from "./ai";
+import { GroqOpenAIProvider } from "./groq";
 import { ChatRunError, runChat } from "./chat";
 import { GUIDE_SUGGESTIONS, GuideAIProvider } from "./guide";
 import { createKnowledgeProvider } from "./knowledge";
@@ -308,22 +309,34 @@ async function handleChat(
   }
 }
 
+/**
+ * Provider selection from env (existing behavior preserved): `mock` and
+ * `guide` are dev/fallback only, `groq` is the OpenAI-compatible free tier,
+ * and anything else (default) keeps the production CloudflareAIProvider. The
+ * guide branch derives the same project list the fallback path serves
+ * (listProjectCards over the knowledge index), so forced guide mode and the
+ * automatic fallback never diverge.
+ */
+export function selectProvider(env: Env): AIProvider {
+  if (env.AI_PROVIDER === "mock") return new MockAIProvider();
+  if (env.AI_PROVIDER === "guide") {
+    return new GuideAIProvider({
+      projects: listProjectCards(createKnowledgeProvider(env).index()),
+    });
+  }
+  if (env.AI_PROVIDER === "groq") {
+    return new GroqOpenAIProvider(env.GROQ_API_KEY ?? "", env.GROQ_MODEL_ID ?? env.MODEL_ID);
+  }
+  return new CloudflareAIProvider(env.AI, env.MODEL_ID);
+}
+
 export default {
   fetch(request: Request, env: Env, _ctx: unknown): Promise<Response> {
     const knowledge = createKnowledgeProvider(env);
-    // Same project list served by GET /api/projects (listProjectCards over the
-    // knowledge index): forced guide mode and the automatic fallback reuse it
-    // instead of duplicating content.
-    const projects = listProjectCards(knowledge.index());
     const deps: HandlerDeps = {
       rateLimiter: createRateLimiter(env),
       knowledge,
-      ai:
-        env.AI_PROVIDER === "mock"
-          ? new MockAIProvider()
-          : env.AI_PROVIDER === "guide"
-            ? new GuideAIProvider({ projects })
-            : new CloudflareAIProvider(env.AI, env.MODEL_ID),
+      ai: selectProvider(env),
       limits: limitsFromEnv(env),
       allowedOrigins: allowedOriginsFromEnv(env),
     };
