@@ -1,10 +1,14 @@
-# Single-worker deploy: verdu.verdu-3a3.workers.dev serves the portfolio (static
-# assets) AND the chat (/api/* in-process). One worker, one URL, no CORS.
+# Single-worker deploy: verdu.verdu-3a3.workers.dev serves the portfolio and
+# the chat from ONE worker. Static files come from an R2 bucket (the Workers
+# static-assets resolver of this account currently answers /api/* before the
+# worker, so the site is served by code instead — same worker, R2-backed).
 name = "verdu"
 main = "src/site.ts"
 compatibility_date = "2026-09-15"
 
-assets = { directory = "../dist", run_worker_first = ["/api/*"] }
+[[r2_buckets]]
+binding = "ASSETS_BUCKET"
+bucket_name = "verdu-assets"
 
 [vars]
 # Same provider/limits contract as worker/wrangler.toml (production defaults).
